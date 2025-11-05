@@ -21,7 +21,7 @@ Identifing specfic humans using facial recognition with Google Coral
 Google Coral, Edge AI
 
 ## 3. Problem Definition
-Home owners that use Ring cameras want the ability to accuretly identify know persons from unknown persons that are at their front door. Our group plans to emulate the function of a ring camera by creating an AI program to identify unique faces. This will allow homeowners to be alerted if strangers are at their door. This project is relvant to AI hardware as it incorperates the importance of latency by quickly identify faces and effeciency by correctly identifying known faces from unknown strangers.
+Home owners that use Ring cameras want the ability to accurately identify know persons from unknown persons that are at their front door. Our group plans to emulate the function of a ring camera by creating an AI program to identify unique faces. This will allow homeowners to be alerted if strangers are at their door. This project is relvant to AI hardware as it incorporates the importance of latency by quickly identify faces and effeciency by correctly identifying known faces from unknown strangers.
 
 ## 4. Technical Objectives
 - Use our model to accuratly identify 3 unique faces with an above 80 success rate in normal lighting conditions
