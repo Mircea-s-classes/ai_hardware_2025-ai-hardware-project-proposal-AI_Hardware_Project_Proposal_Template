@@ -63,7 +63,7 @@ Provide expected milestones:
 |------|------------|-------------|
 | 2 | Proposal | PDF + GitHub submission |
 | 4 | Midterm presentation | Slides, preliminary results |
-| 6 | Integration & testing | Working prototype |
+| 5 | Integration & testing | Working prototype |
 | Dec. 18 | Final presentation | Report, demo, GitHub archive |
 
 ## 9. Resources Required
