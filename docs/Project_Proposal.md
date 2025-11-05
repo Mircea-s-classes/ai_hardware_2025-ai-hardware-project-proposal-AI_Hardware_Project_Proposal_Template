@@ -13,7 +13,7 @@
 ## 1. Project Title
 Ring Camera with AI
 
-Nate Owen 
+Nate Owen, Sammie Levine, Nate Owen, Marissa Cash
 
 Identifing specfic humans using facial recognition with Google Coral
 
@@ -55,10 +55,10 @@ List each member’s main role.
 
 | Name | Role | Responsibilities |
 |------|------|------------------|
-| [Student A] | Team Lead | Coordination, documentation |
+| Grayson Turner | Team Lead | Coordination, documentation |
 | Nate Owen | Hardware | Setup, integration |
-| [Student C] | Software | Model training, inference |
-| [Student D] | Evaluation | Testing, benchmarking |
+| Sammie Levine | Software | Model training, inference |
+| Marissa Cash | Evaluation | Testing, benchmarking |
 
 ## 8. Timeline and Milestones
 Provide expected milestones:
