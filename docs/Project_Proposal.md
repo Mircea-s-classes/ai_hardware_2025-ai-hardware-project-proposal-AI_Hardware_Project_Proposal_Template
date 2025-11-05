@@ -70,6 +70,9 @@ Provide expected milestones:
 
 ## 9. Resources Required
 List special hardware, datasets, or compute access needed.
+https://www.kaggle.com/datasets/atulanandjha/lfwpeople
 
 ## 10. References
 Include relevant papers, repositories, and documentation.
+https://www.coral.ai/examples/
+https://embecosm.com/2019/08/09/facial-recognition-on-the-new-google-coral-development-board/
