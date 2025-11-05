@@ -65,7 +65,7 @@ Provide expected milestones:
 | Nov. 5/6 | Proposal | PDF + GitHub submission |
 | 4 | Midterm presentation | Slides, preliminary results |
 | 5 | Integration & testing | Working prototype |
-| Dec. 18 | Final presentation | Report, demo, GitHub archive |
+| Mid December | Final presentation | Report, demo, GitHub archive |
 
 ## 9. Resources Required
 List special hardware, datasets, or compute access needed.
