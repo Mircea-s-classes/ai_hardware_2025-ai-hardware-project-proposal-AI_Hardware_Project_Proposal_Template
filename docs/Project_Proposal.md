@@ -13,7 +13,7 @@
 ## 1. Project Title
 Ring Camera with AI
 
-Nate Owen, Sammie Levine, Nate Owen, Marissa Cash
+Nate Owen, Sammie Levine, Grayson Turner, Marissa Cash
 
 Identifing specfic humans using facial recognition with Google Coral
 
