@@ -8,11 +8,14 @@
 
 This project implements real-time facial expression recognition on edge AI hardware, demonstrating efficient deployment of deep learning models on resource-constrained devices. The system recognizes 7 emotions (Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral) and displays corresponding Clash Royale emotes.
 
+### Platform
+**Raspberry Pi 4 Model B** (CPU-only inference, no external accelerators)
+
 ### Key Objectives
-- **Real-Time Performance**: 30+ FPS with <20ms inference latency
+- **Real-Time Performance**: 10-20 FPS with <120ms total latency
 - **Power Efficiency**: <5W total system power consumption
 - **Accuracy**: 85%+ accuracy on FER2013 dataset
-- **Edge Optimization**: INT8 quantization for Edge TPU deployment
+- **Edge Optimization**: INT8 quantization for efficient inference
 
 ## 📁 Project Structure
 
@@ -74,18 +77,15 @@ python src/model/evaluate.py --model models/baseline_fp32.h5
 python src/model/quantize_model.py
 ```
 
-6. **Convert to TFLite and Edge TPU**
-```bash
-python src/model/convert_to_edgetpu.py
-```
-
 ### Phase 3: Hardware Integration (Week 4-5)
 
-7. **Deploy on Raspberry Pi + Coral**
+6. **Deploy on Raspberry Pi 4**
 ```bash
 # On Raspberry Pi
-python src/hardware/inference_demo.py
+python src/hardware/inference_demo.py --model models/model_int8.tflite --no-edgetpu --display-fps
 ```
+
+**See**: `DEPLOYMENT_RPi4_ONLY.md` for complete deployment guide
 
 ## 📊 Current Progress
 
@@ -114,10 +114,11 @@ python benchmarks/benchmark_model.py
 | Metric | Target | Current |
 |--------|--------|---------|
 | Accuracy | >85% | TBD |
-| FPS | >30 | TBD |
-| Latency | <20ms | TBD |
+| FPS (RPi 4) | >10 | TBD |
+| Inference Latency | <80ms | TBD |
+| Total Latency | <120ms | TBD |
 | Power | <5W | TBD |
-| Model Size | <10MB | TBD |
+| Model Size (INT8) | <5MB | ~3.5MB |
 
 ## 🎮 Emotion to Emote Mapping
 
