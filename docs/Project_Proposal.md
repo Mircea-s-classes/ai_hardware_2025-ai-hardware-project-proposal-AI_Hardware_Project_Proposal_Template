@@ -9,296 +9,372 @@
 
 ---
 
-# AI Hardware Project Proposal Template
+# AI Hardware Project Proposal
 
 ## 1. Project Title
 
-**Real-Time Facial Expression Recognition on Edge AI Hardware with Interactive Emote Display**
+**Real-Time Pose-Based Emote Detection on Raspberry Pi 4**
 
 **Team Name:** VisionMasters
 
 **Team Members:**
 
-- [Allen Chen] - [wmm7wr@virginia.edu]
-- [Marvin Rivera] - [tkk9wg@virginia.edu]
-- [Sami Kang] - [ajp3cx@virginia.edu]
+- Allen Chen - wmm7wr@virginia.edu
+- Marvin Rivera - tkk9wg@virginia.edu
+- Sami Kang - ajp3cx@virginia.edu
 
 ## 2. Platform Selection
 
-Select one platform category and justify your choice.
-
-**Undergraduates:** Edge-AI, TinyML, or Neuromorphic platforms  
-**Graduates:** open-source AI accelerators (Ztachip, VTA, Gemmini, VeriGOOD-ML, NVDLA) or any of the above
-
 **Selected Platform:** Edge-AI Platform
 
-**Specific Hardware:** Raspberry Pi 4 + Google Coral USB Accelerator (Edge TPU)
+**Specific Hardware:** Raspberry Pi 4 Model B (4GB RAM)
 
-**Reasoning:**  
-The Google Coral Edge TPU is specially designed for running AI tasks directly on devices with very low power usage (around 2 watts). This makes it a great fit for our facial expression recognition project because:
+**Reasoning:**
 
-1. **Fast Response Time:** Its design allows it to quickly process video data in real-time, aiming for over 30 frames per second, so we can see expressions instantly.
+The Raspberry Pi 4 represents a widely-deployed edge computing platform that demonstrates the challenges and trade-offs of running AI workloads on resource-constrained devices:
 
-2. **Low Power Use:** Since it's energy-efficient, it's perfect for devices that run on batteries or need to stay on all the time without draining power. The TPU uses hardware optimized for fast and efficient AI calculations.
+1. **Representative Edge Hardware:** The Quad-core ARM Cortex-A72 @ 1.5GHz with 4GB LPDDR4 RAM mirrors the compute capabilities found in many embedded and IoT devices, making our findings applicable to real-world deployments.
 
-3. **Real-World Edge Use:** It reflects the real limits of small, connected devices — they often have limited power, can't always connect to the internet, and need to process data instantly.
+2. **CPU-Only Inference:** By running inference without dedicated accelerators, we can analyze the full software stack and identify optimization opportunities that apply broadly to edge devices without specialized AI hardware.
 
-4. **Design and Programming Integration:** To work best with this hardware, models need to be simplified and fine-tuned specifically for the TPU, which highlights important aspects of building dedicated AI hardware.
+3. **Real-World Constraints:** The platform exposes genuine limitations in power, thermal management, memory bandwidth, and compute that are central to AI hardware design decisions.
 
-Overall, this platform helps us understand and tackle key challenges in designing AI systems: how to keep models accurate while making them smaller and faster, how to get the best performance from special hardware, and how to deliver quick results without using much power.
+4. **Full ML Pipeline Demonstration:** The platform allows us to demonstrate the complete machine learning workflow from data collection through deployment, showcasing the end-to-end process required for edge AI applications.
 
 ## 3. Problem Definition
 
-Real-time facial expression recognition means detecting and understanding people's emotions quickly enough to keep up with what they’re doing, usually requiring processing over 30 video frames each second with less than 50 milliseconds of delay. Doing this on small, battery-powered devices is challenging. Usually, there are two main approaches:
-
-- Using powerful, energy-hungry graphics cards, which aren’t practical for small devices.
-- Using simpler, less accurate models on regular computer chips, which improve efficiency but reduce accuracy.
+**Challenge:** Real-time human pose recognition for interactive applications requires processing video frames fast enough to feel responsive (>10 FPS) while running on power-constrained edge devices without dedicated AI accelerators.
 
 **The AI Hardware Challenge:**
 
-How can we develop systems that recognize facial expressions accurately (over 85% correct) at real-time speeds (more than 30 frames per second) while using very little power (less than 5 watts)?
+How can we achieve real-time pose classification on a CPU-only edge device by optimizing the ML pipeline, selecting appropriate model architectures, and engineering efficient feature representations?
 
 **Why This Matters for AI Hardware:**
 
-This project focuses on the key challenges in designing AI hardware:
+This project addresses fundamental AI hardware design considerations:
 
-1. **Efficiency:** We’re using special hardware called Edge TPU that works with lower-precision calculations (INT8). To keep accuracy high, we need to carefully optimize our models so they use less computation—about a quarter of the normal amount—without losing quality.
+1. **Model Selection Trade-offs:** Comparing lightweight pose estimation (MediaPipe) vs. traditional computer vision approaches demonstrates how model architecture choices impact edge deployment feasibility.
 
-2. **Speed:** Processing video in real time means each frame must be handled in less than 33 milliseconds. We need to make sure all parts of the process—preparing data, running the AI model, and interpreting results—are optimized, considering limits like memory bandwidth and processing power.
+2. **Feature Engineering vs. Deep Learning:** Using geometric features with classical ML (Random Forest) instead of end-to-end deep learning shows an alternative approach that can be more efficient on CPU-only devices.
 
-3. **Scalability:** The solution should run on small devices with limited resources, like 4GB of RAM and ARM-based CPUs, proving that advanced AI can work outside of big servers.
+3. **Pipeline Optimization:** Analyzing where time is spent (camera capture, pose detection, classification, rendering) reveals bottlenecks and guides hardware/software co-design decisions.
 
-4. **Hardware-Software Co-Design:** Achieving this requires designing the AI model (like MobileNet), choosing the right quantization methods (INT8), and matching these with hardware capabilities (TPU vs. CPU) in a way that all parts work together smoothly.
-
-By solving this, we show how specially designed AI chips allow complex applications—like facial expression recognition—to run on tiny, portable devices, something that’s nearly impossible with general-purpose processors alone.
+4. **Resource Profiling:** Measuring CPU utilization, memory usage, thermal behavior, and power consumption provides insights into what hardware resources limit performance.
 
 **Real-World Use Case:**
 
-Our demo shows how facial expressions can be linked to game emojis in Clash Royale. This highlights possible uses such as:
+Our demo maps detected body poses to Clash Royale game emotes, demonstrating applications in:
 
-- Gaming accessories that react to your emotions
-- Devices to help people communicate without words
-- Monitoring mental health by tracking emotions
-- Smart home systems that can respond to how you’re feeling
+- Gaming accessories that react to player gestures
+- Gesture-based communication interfaces
+- Interactive entertainment systems
+- Human-computer interaction research
 
 ## 4. Technical Objectives
 
-1. **Real-Time Performance**: Ensure the system can process at least 30 frames per second from capturing the camera image to showing the emotion, with each frame being analyzed in less than 20 milliseconds.
+1. **Real-Time Performance:** Achieve ≥10 FPS end-to-end processing (camera capture → pose detection → classification → display) on Raspberry Pi 4 CPU.
 
-2. **Power Efficiency**: Keep the total power used by the system (including the Raspberry Pi, Coral device, and camera) below 5 watts, showing that it can run efficiently on low power.
+2. **Low Latency:** Maintain <100ms total latency from pose to emote display for responsive interaction.
 
-3. **Accuracy Preservation**: Keep at least 85% correct predictions on the FER2013 test set, even after simplifying the model to run faster, with less than 5% drop in accuracy compared to the original full-precision version.
+3. **Classification Accuracy:** Achieve >85% accuracy on 5 pose classes using self-collected training data.
 
-4. **Quantization Optimization**: Use techniques to simplify the model after training that help it run better on the Edge TPU without losing much accuracy. This includes testing both post-training quantization and methods that prepare the model for quantization during training.
+4. **Thermal Stability:** Ensure sustained operation without thermal throttling during extended use (>30 minutes).
 
-5. **System Optimization**: Analyze the entire setup to find and fix any slow parts, making the system run smoothly. This involves deciding which tasks run on the main processor (CPU) versus the specialized hardware (TPU), as well as optimizing memory usage and overall system performance.
+5. **Comprehensive Metrics:** Collect detailed performance metrics (FPS, latency breakdown, CPU/memory usage, temperature) to analyze hardware utilization patterns.
 
 ## 5. Methodology
 
-### **Hardware Setup**
+### 5.1 Hardware Setup
 
-**Devices Used:**
+| Component | Specification |
+|-----------|---------------|
+| **Compute** | Raspberry Pi 4 Model B, 4GB RAM |
+| **CPU** | Broadcom BCM2711, Quad-core Cortex-A72 @ 1.5GHz |
+| **Camera** | Logitech Brio 100 USB Webcam (1080p) |
+| **Display** | HDMI monitor (via VNC for remote demo) |
+| **Storage** | 64GB MicroSD Card |
 
-- Raspberry Pi 4 with 4GB of memory
-- Google Coral USB Accelerator (special chip to speed up AI tasks)
-- USB webcam that broadcasts at 720p quality and 30 frames per second
-- A USB power meter to monitor how much power the system uses
-- HDMI monitor to display real-time emotion icons
+### 5.2 Software Stack
 
-### **Software Used**
+| Layer | Technology |
+|-------|------------|
+| **OS** | Raspberry Pi OS (64-bit) |
+| **Runtime** | Python 3.11 |
+| **Pose Detection** | MediaPipe Holistic (TensorFlow Lite backend) |
+| **Classification** | scikit-learn Random Forest |
+| **Computer Vision** | OpenCV |
+| **Audio** | pygame |
+| **Metrics** | Custom performance profiler with psutil |
 
-- **Operating System:** Raspberry Pi OS (64-bit version)
-- **AI Software:** TensorFlow Lite with special support for the Coral device
-- **Programming Language:** Python 3.9 or newer
-- **Key Libraries:** OpenCV (for camera and image processing), NumPy, Pillow
-- **Face Detection:** MediaPipe Face Detection (optimized for mobile devices)
-- **Version Control:** Git and GitHub for managing code
+### 5.3 ML Pipeline Architecture
 
-### **How the Model Is Built and Made Efficient**
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌────────────┐
+│   Camera    │ ──► │  MediaPipe       │ ──► │  Feature        │ ──► │  Random    │
+│   Capture   │     │  Holistic        │     │  Extraction     │     │  Forest    │
+│  (OpenCV)   │     │  (TFLite)        │     │  (NumPy)        │     │  Classifier│
+└─────────────┘     └──────────────────┘     └─────────────────┘     └────────────┘
+      │                    │                        │                      │
+      │              Pose, Face, Hand          Geometric              Pose Label +
+      │               Landmarks               Features (45D)          Confidence
+      ▼                    ▼                        ▼                      ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Display & Emote Overlay                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
-**Starting Point:**
+### 5.4 Pose Detection (MediaPipe Holistic)
 
-- Uses MobileNetV2 (a lightweight neural network suitable for small devices)
-- Trained to recognize 7 facial expressions: Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral
-- Initially trained on a large dataset called ImageNet
-- Then fine-tuned with around 35,000 images from FER2013 dataset
+MediaPipe Holistic provides unified detection of:
+- **33 Pose Landmarks** (body skeleton)
+- **468 Face Landmarks** (facial mesh)
+- **21 Hand Landmarks** (per hand)
 
-**Making the Model Smaller and Faster:**
+**Model Complexity Options:**
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| 0 | Lite | Fastest, lower accuracy |
+| 1 | Full | Balanced |
+| 2 | Heavy | Most accurate, slowest |
 
-1. Train the full-precision (32-bit) model and see how accurate it is
-2. Convert the model to a smaller, integer format (8-bit) to run faster on devices
-3. If accuracy drops more than 5%, retrain the model with special techniques to keep accuracy high
-4. Prepare the model specifically for the Coral Edge TPU chip, ensuring all parts run on the hardware without fallback to the main CPU
+We use **complexity=0** for optimal real-time performance on RPi4.
 
-**Preparing the Input Data:**
+### 5.5 Feature Engineering
 
-- Use images of size 224x224 pixels in color
-- Run face detection, crop the face, resize, and normalize the image on the CPU before sending it for prediction
-- Run the emotion recognition on the TPU
-- After prediction, process the results on the CPU to get the final emotion label and confidence level
+Instead of using raw landmarks (which would require deep learning), we extract **45 geometric features** from pose landmarks:
 
-### **Optimizing Performance**
+1. **Shoulder-Based Features:**
+   - Shoulder width (normalized)
+   - Shoulder center position
+   - Shoulder tilt angle
 
-1. Use profiling tools to find parts of the process that slow things down
-2. Make sure the most demanding AI tasks are done on the TPU
-3. Reduce unnecessary data movement between the CPU and TPU
-4. Overlap camera capture and inference processes to save time
+2. **Arm Position Features:**
+   - Elbow angles (left/right)
+   - Wrist positions relative to shoulders
+   - Arm extension ratios
 
-### **Measuring Performance**
+3. **Head/Face Features:**
+   - Head tilt angle
+   - Nose-to-shoulder distances
+   - Face visibility score
 
-- **Latency:** How long each step takes (detect face, preprocess, run prediction, interpret results)
-- **Frames per second:** How many frames (images) are processed each second
-- **Power Usage:** Measure power while the system is idle and when actively predicting, with a USB power meter
-- **Accuracy:** How often the model correctly identifies emotions on test images
-- **Resource Use:** Monitor CPU and memory usage, TPU activity, and temperature to ensure stability
+4. **Body Posture Features:**
+   - Torso lean angle
+   - Hip-shoulder alignment
+   - Overall pose symmetry
 
-### **Demo Application**
+### 5.6 Classification (Random Forest)
 
-A live system that:
+**Why Random Forest over Deep Learning:**
 
-- Shows camera feed on the screen
-- Draws boxes around faces
-- Displays the predicted emotion and confidence
-- Shows a matching game emote (like in Clash Royale)
-- Shows an FPS counter for how fast it's working
-- Displays system info like latency and power use
+| Aspect | Random Forest | Deep Learning (CNN) |
+|--------|---------------|---------------------|
+| Training Time | Seconds | Hours |
+| Inference Speed | <1ms | 10-50ms |
+| Data Required | ~100 samples/class | 1000+ samples/class |
+| CPU Efficiency | Excellent | Moderate |
+| Interpretability | High (feature importance) | Low |
 
-**Emotion-to-Emote Examples:**
+**Model Configuration:**
+- 100 decision trees
+- Max depth: 10
+- Features: 45 geometric measurements
+- Classes: 5 poses
 
-- Happy → Laughing king icon
-- Sad → Crying face
-- Angry → Angry face icon
-- Surprise → Shocked face
-- Fear → Screaming face
-- Disgust → Sick face
-- Neutral → Thumbs-up
+### 5.7 Data Collection
 
-### **Testing and Validation**
+We collect our own training data using the built-in data collector:
 
-1. **Functionality Checks:** Make sure it predicts correctly with different photos
-2. **Performance Tests:** Record video clips to see how fast and smoothly it runs
-3. **Accuracy Checks:** Test on standard datasets to see how well it recognizes emotions
-4. **Long Runs:** Use the system for over an hour to check if it stays cool and performs reliably
+**Pose Classes:**
+| ID | Pose Name | Description |
+|----|-----------|-------------|
+| 0 | Laughing | Hands raised, celebratory pose |
+| 1 | Yawning | Hands near face, stretching |
+| 2 | Crying | Hands covering face |
+| 3 | Taunting | Arms crossed or dismissive gesture |
+| 4 | Mean Laugh | Pointing/mocking gesture |
+
+**Collection Process:**
+1. Run `data_collector.py`
+2. Press number keys (0-4) to record poses
+3. Collect 50-100 samples per pose
+4. Press 't' to train model
+5. Model and data automatically saved
+
+### 5.8 Performance Optimization
+
+| Optimization | Impact |
+|--------------|--------|
+| Resolution reduction (320×240) | ~4x faster processing |
+| Frame skipping (process every 2nd frame) | ~2x throughput |
+| Model complexity 0 | ~2x faster inference |
+| Display scaling (process small, display large) | Maintains usability |
+| Single window mode | Reduces rendering overhead |
+| Buffer size = 1 | Reduces latency |
+
+### 5.9 Performance Metrics Collection
+
+Our custom metrics system captures:
+
+| Metric Category | Measurements |
+|-----------------|--------------|
+| **Timing** | Frame time, MediaPipe inference, Classifier inference |
+| **Throughput** | FPS (mean, min, max, std) |
+| **Latency** | P50, P95, P99 latencies |
+| **System** | CPU %, Memory %, Temperature |
+| **Classification** | Confidence scores, prediction distribution |
+
+**Output Formats:**
+- JSON (raw data for analysis)
+- CSV (for plotting)
+- Markdown report (for presentation)
 
 ## 6. Expected Deliverables
 
-1. **Working Demo System**:
+### 6.1 Working Demo System
 
-   - A live facial expression recognition system running in real-time on a Raspberry Pi with Coral hardware
-   - An interactive display that shows your emotions as they are detected
-   - A recorded video demonstrating how the system works
-   - The ability to show a live demo during the final presentation
+- [x] Real-time pose detection running on Raspberry Pi 4
+- [x] Interactive emote display with 5 pose classes
+- [x] Audio feedback for detected poses
+- [x] Live FPS and confidence display
+- [x] Screenshot capability
 
-2. **GitHub Repository** (organized, well-documented, open to the public):
+### 6.2 GitHub Repository Structure
 
-   - /src # Source code files
-   - /models # Trained models (standard and smaller, optimized versions)
-   - /data # Sample test images
-   - /benchmarks # Scripts to measure system performance
-   - /docs # Documentation and system diagrams
-   - /results # Performance data (CSV files), charts
-   - README.md # Instructions for setting up the system
-   - requirements.txt
+```
+/ai-hardware-project-proposal-visionmasters/
+├── src/emote_detector/
+│   ├── main.py                 # Main application
+│   ├── holistic_detector.py    # MediaPipe wrapper
+│   ├── pose_classifier.py      # Random Forest classifier
+│   ├── data_collector.py       # Training data collection
+│   ├── train_model.py          # Model training & evaluation
+│   ├── performance_metrics.py  # Metrics collection system
+│   ├── pose_classifier_model.pkl  # Trained model
+│   ├── emotes/                 # Emote images and sounds
+│   ├── pose_data/              # Collected training data
+│   └── results/                # Charts and metrics
+├── docs/
+│   └── Project_Proposal.md     # This document
+├── presentations/              # Presentation slides
+├── report/                     # Final report
+├── requirements.txt            # Python dependencies
+└── README.md                   # Setup instructions
+```
 
-3. **Trained Models**:
+### 6.3 Trained Models & Data
 
-   - The basic model with full precision (FP32)
-   - A smaller, optimized version of the model (INT8 quantized TFLite, compatible with Edge TPU)
-   - A report comparing how well each model performs
+- [x] Self-collected pose dataset (~500 samples)
+- [x] Trained Random Forest classifier
+- [x] Feature extraction pipeline
+- [x] Model evaluation metrics
 
-4. **Benchmark Results**:
+### 6.4 Benchmark Results
 
-   - Breakdown of system response times
-   - Frame rates (how many images processed per second)
-   - Power usage information
-   - Comparison of accuracy between the full precision and optimized models
-   - Charts and graphs showing performance data
+- [ ] Latency breakdown by component
+- [ ] FPS measurements under different configurations
+- [ ] CPU/Memory utilization profiles
+- [ ] Thermal behavior over time
+- [ ] Comparison charts (resolution, complexity, skip frames)
 
-5. **Technical Documentation**:
+### 6.5 Technical Documentation
 
-   - Diagram showing how the system is put together
-   - Instructions for setting up the hardware
-   - Explanation of how the model was trained and converted
-   - Details about the optimizations made to improve performance
-   - Analysis of where the system spends most of its time and potential bottlenecks
+- [x] System architecture diagram
+- [x] Data collection instructions
+- [x] Model training pipeline
+- [ ] Deployment guide for Raspberry Pi
+- [ ] Performance optimization guide
 
-6. **Presentations**:
+### 6.6 Presentations
 
-   - **Midterm**: Explanation of the problem, approach, initial results, and early performance tests
-   - **Final**: Live demo of the complete system, detailed performance analysis, optimization learnings, and lessons learned
+- **Midterm:** Problem definition, approach, initial implementation
+- **Final:** Live demo, performance analysis, lessons learned
 
-7. **Final Report**:
-   - Introduction and reasons for doing the project
-   - Background info on Edge AI and Edge TPU hardware
-   - How the system was designed and built
-   - How the models were optimized and converted
-   - Results from testing and how the system performs
-   - Combining hardware and software considerations
-   - Challenges faced and how they were solved
-   - Conclusions and ideas for future improvements
-   - References to related work
+### 6.7 Final Report
+
+- Introduction and motivation
+- Background on edge AI and pose estimation
+- System design and implementation
+- Performance analysis and optimization
+- Hardware utilization insights
+- Challenges and solutions
+- Conclusions and future work
 
 ## 7. Team Responsibilities
 
-List each member’s main role.
-
-| Name            | Role       | Responsibilities            |
-| --------------- | ---------- | --------------------------- |
-| [Marvin Rivera] | Team Lead  | Coordination, documentation |
-| [Allen Chen]    | Hardware   | Setup, integration          |
-| [Sami Kang]     | Software   | Model training, inference   |
-| [ALL]           | Evaluation | Testing, benchmarking       |
+| Name | Role | Responsibilities |
+|------|------|------------------|
+| Marvin Rivera | Team Lead | Coordination, documentation, presentation |
+| Allen Chen | Hardware | RPi setup, camera integration, deployment |
+| Sami Kang | Software | Model training, optimization, metrics |
+| ALL | Evaluation | Testing, benchmarking, data collection |
 
 ## 8. Timeline and Milestones
 
-| Week | Date   | Key Task                                     | What to Deliver                                                                                                                          |
-| ---- | ------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Nov 5  | **Project Idea Proposal**                    | Submit a PDF and upload files to GitHub in the `/docs` folder                                                                            |
-| 2    | Nov 12 | Setting up Hardware & Creating Initial Model | Get Raspberry Pi and Coral device working, train a basic facial recognition model using standard precision (FP32) on the FER2013 dataset |
-| 3    | Nov 19 | Improving the Model & Using TPU Hardware     | Convert the model to run on Edge TPU with INT8 precision, get initial testing working, compare accuracy                                  |
-| 4    | Nov 19 | **Midterm Presentation**                     | Prepare slides showing setup, model results, early testing, and any problems faced                                                       |
-| 5    | Dec 3  | Adding App Features & Making It Faster       | Create a working demo that shows camera capturing, making predictions, and displaying results, start optimizing performance              |
-| 6    | Dec 10 | Fine-Tuning Performance & Testing            | Measure how well everything works, identify and fix slow parts, run full performance tests                                               |
-| 7    | Dec 17 | **Final Presentation & Submission**          | Submit the final report, give your presentation, and upload all project files with clear instructions to GitHub                          |
+| Week | Date | Task | Deliverable |
+|------|------|------|-------------|
+| 1 | Nov 5 | **Project Proposal** | Submit proposal to Canvas and GitHub |
+| 2 | Nov 12 | Environment Setup | RPi configured, MediaPipe running |
+| 3 | Nov 19 | Data Collection & Training | Pose dataset, trained classifier |
+| 4 | Nov 19 | **Midterm Presentation** | Demo basic pose detection |
+| 5 | Dec 3 | Integration & Optimization | Full pipeline working, performance tuning |
+| 6 | Dec 10 | Benchmarking & Analysis | Complete metrics, performance charts |
+| 7 | Dec 17 | **Final Presentation** | Live demo, final report, all deliverables |
 
 ## 9. Resources Required
 
-### **Hardware (Requesting from Course):**
+### Hardware (Provided by Course)
 
-- Raspberry Pi 4 (4GB RAM) — 1 unit
-- Google Coral USB Accelerator — 1 unit
+- Raspberry Pi 4 Model B (4GB RAM) — 1 unit
 - MicroSD card (64GB) — 1 unit
 
-### **Hardware:**
+### Hardware (Team Provided)
 
-- USB webcam (720p) — ~$25 (team can purchase)
-- USB power meter — ~$15 (for power measurements)
-- HDMI monitor (using personal monitor)
-- Micro-HDMI to HDMI cable (if needed)
-- Webcam, monitor, and HDMI cable might not be needed, could use individual laptop components
+- Logitech Brio 100 USB Webcam — ~$30
+- HDMI monitor (personal)
+- USB-C power supply
 
-### **Software & Cloud:**
+### Software (Free/Open Source)
 
-- TensorFlow / TensorFlow Lite
-- Google Colab
-- Edge TPU Compiler
-- MediaPipe
-- Git/GitHub
+| Software | Purpose |
+|----------|---------|
+| MediaPipe | Pose detection (TFLite) |
+| scikit-learn | Random Forest classifier |
+| OpenCV | Camera/image processing |
+| pygame | Audio playback |
+| NumPy | Numerical computation |
+| matplotlib/seaborn | Visualization |
+| psutil | System monitoring |
 
-### **Datasets:**
-
-- FER2013
-- Clash Royale emote images
-
-### **Compute:**
+### Compute
 
 - Personal laptops for development
-- Google Colab free tier for model training
+- Raspberry Pi 4 for deployment/testing
 
-## 10. References
+## 10. Key Differences from Original Proposal
 
-Include relevant papers, repositories, and documentation.
+| Aspect | Original Plan | Actual Implementation |
+|--------|---------------|----------------------|
+| **Hardware** | RPi4 + Coral TPU | RPi4 only (CPU) |
+| **Task** | Facial expression recognition | Pose-based gesture recognition |
+| **Dataset** | FER2013 (35K images) | Self-collected (~500 samples) |
+| **Model** | MobileNetV2 (CNN) | Random Forest (classical ML) |
+| **Features** | Raw pixels | Engineered geometric features |
+| **Quantization** | INT8 for Edge TPU | Not needed (RF is efficient) |
+| **Target FPS** | 30+ FPS | 10-15 FPS |
+| **Complexity** | Deep learning pipeline | Lightweight ML pipeline |
 
-- https://www.electromaker.io/blog/article/coral-usb-accelerator-add-fast-edge-ai-to-any-host
-- https://de.mathworks.com/company/technical-articles/what-is-int8-quantization-and-why-is-it-popular-for-deep-neural-networks.html
-- https://pmc.ncbi.nlm.nih.gov/articles/PMC11620061/
+**Rationale for Changes:**
+1. Coral TPU was removed to simplify deployment and focus on CPU optimization
+2. Pose-based approach is more robust and requires less training data
+3. Self-collected data demonstrates the full ML pipeline for educational purposes
+4. Random Forest provides interpretable results and fast inference
+
+## 11. References
+
+1. MediaPipe Holistic Documentation - https://google.github.io/mediapipe/solutions/holistic
+2. scikit-learn Random Forest - https://scikit-learn.org/stable/modules/ensemble.html#forests-of-randomized-trees
+3. Raspberry Pi 4 Specifications - https://www.raspberrypi.com/products/raspberry-pi-4-model-b/specifications/
+4. TensorFlow Lite for Microcontrollers - https://www.tensorflow.org/lite/microcontrollers
+5. Real-time Pose Estimation on Edge Devices - https://arxiv.org/abs/2006.10204
+6. Original Clash Royale Emote Detector (Reference) - https://github.com/example/clash-royale-emote-detector
