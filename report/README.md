@@ -18,10 +18,19 @@ All team members worked together however our official team roles to make sure wo
   * **Marissa Cash:** Evaluation - testing, benchmark
 
 ## Implementation
-E
+
+### Software and Hardware Set Up
+
+### Data Collection 
+
+### Run the program 
 
 ## Results
-E
+The Arduino camera was successfully able to identify between our known resident (Nate), unknown residents, and background data. 
+
+(Accuracy Statisc)
+
+(Result Images)
 
 
 ## Folder Structure
