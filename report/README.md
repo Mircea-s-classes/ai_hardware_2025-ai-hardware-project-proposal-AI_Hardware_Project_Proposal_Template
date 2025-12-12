@@ -11,8 +11,11 @@ Marissa Cash
 The goal of this project is to use an Arduino Nano 33 BLE Sense Lite paired with an OV7675 camera module to perform basic facial recognition. The system is designed to detect and identify unique human faces and compare them against a dataset of reference profiles. Based on this face detected the device dhould be able to classfiy each face as either a known resident or an unknown intruder. This simulates the integration of AI into the core logic of a smart doorbell camera system. Our camera system captures images and processses them on the microcontroller and assigns identity labels to different visitors. The design demonstrates how edge solutions of AI hardware can be used in real life scenarios. The final system integrates image acquisition, feature processing and classification to show a complete demonstration of  real time visitor identification
 
 ## Team Setup
-Each team should have **2–4 members (3 preferred)**.  
-List all team members in `docs/Project_Proposal.md`.
+All team members worked together however our official team roles to make sure work was evenly distributed were:
+  * **Grayson Turner:** Team Lead - coordination, documentation
+  * **Nate Owen:** Hardware - setup, integration
+  * **Sammie Levine:** Software - model training, inference 
+  * **Marissa Cash:** Evaluation - testing, benchmark
 
 ## Implementation
 E
