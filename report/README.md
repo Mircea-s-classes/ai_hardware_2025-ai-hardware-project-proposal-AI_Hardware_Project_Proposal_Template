@@ -34,5 +34,3 @@ E
 3. **Final Presentation and Report** — Dec. 17, 11:59 PM
 
 
-## 📜 License
-This project is released under the MIT License.
