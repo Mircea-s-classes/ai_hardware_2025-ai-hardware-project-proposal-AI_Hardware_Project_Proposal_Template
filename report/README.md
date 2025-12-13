@@ -1,10 +1,10 @@
 # AI Hardware Project - The AI Hardware Team
 ECE 4332 / ECE 6332 — AI Hardware  
 Fall 2025
-Grayson Turner
-Sammie Levine
-Nate Owen
-Marissa Cash
+* Grayson Turner
+* Sammie Levine
+* Nate Owen
+* Marissa Cash
 
 ## Overview
 
