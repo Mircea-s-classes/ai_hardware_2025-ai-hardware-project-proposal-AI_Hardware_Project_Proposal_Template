@@ -35,7 +35,10 @@ The system was built using an Arduino Nano 33 BLE Sense Lite paired with an OV76
 
 ### Data Collection 
 
-Face images were captured directly using the OV7675 camera on the Arduino device. Images were labeled into three categories: recognized person (known resident, labeled "Nate"), unknown, and background. Multiple images were collected under normal indoor lighting conditions to reflect a realistic door camera scenario. These labeled images were uploaded to Edge Impulse for training and validation.
+Face images were captured directly using the OV7675 camera on the Arduino device. Images were labeled into three categories: recognized person (known resident, labeled "Nate"), unknown, and background. Multiple images were collected under normal indoor lighting conditions to reflect a realistic door camera scenario. These labeled images were uploaded to Edge Impulse for training and validation. An example of this setup is shown in the image below:
+
+
+![OV7675](../docs/ImageCaptureEx.webp)
 
 
 ### Run the program 
