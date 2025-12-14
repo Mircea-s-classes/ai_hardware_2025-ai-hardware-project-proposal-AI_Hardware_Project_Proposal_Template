@@ -45,17 +45,17 @@ Face images were captured directly using the OV7675 camera on the Arduino device
 
 After the training, the model was deployed to the Arduino Nano 33 BLE Sense Lite using Edge Impulse. During execution, the device continuously captures images. Each frame produces classification probabilities for background, known resident (labeled "Nate"), and unknown. A confidence threshold of approximately 0.8 was used to determine positive identification, and classification results along with inference timing were streamed over the serial monitor for evaluation.
 
+![EdgeImpulse](../docs/UploadingToEdgeImpulse.png)
+
 ## Results
 
 The Arduino camera successfully identified our known resident (Nate), unknown residents, and background scenes. Serial output showed consistent classification behavior, with unknown faces frequently classified with high confidence values near 0.996. When the known resident was present, the model produced "Nate" classification probabilities exceeding 0.9 in several trials.
 
-The measured inference latency was approximately 140 milliseconds per frame, with DSP processing taking about 1 millisecond. This meets the project goal of near real time identification on embedded hardware. The model achieved an overall classification accuracy of approximately 84.7 percent based on Edge Impulse evaluation metrics, with a weighted F1 score of approximately 0.92. False positives were evluated by observing cases where non-"Nate" faces were incorrectly classified as Nate with confidence above 0.8 across multiple trials.
+The measured inference latency was approximately 140 milliseconds per frame, with DSP processing taking about 1 millisecond. This meets the project goal of near real time identification on embedded hardware. The model achieved an overall classification accuracy of approximately 84.7 percent based on Edge Impulse evaluation metrics, with a weighted F1 score of approximately 0.92. False positives were evaluated by observing cases where non-"Nate" faces were incorrectly classified as Nate with confidence above 0.8 across 10 trials, where only one false positive occured out of these ten. This makes our false positive rate approximately 10%.
 
+![EdgeImpulse](../docs/DataExplorer.png)
+![EdgeImpulse](../docs/FinalResults.png)
 
-
-(Accuracy Statisc)
-
-(Result Images)
 
 
 ## Folder Structure
