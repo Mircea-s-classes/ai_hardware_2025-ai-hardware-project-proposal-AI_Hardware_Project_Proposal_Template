@@ -30,7 +30,7 @@ All team members worked together however our official team roles to make sure wo
 The system was built using an Arduino Nano 33 BLE Sense Lite paired with an OV7675 camera module from the TinyML kit. Software development was based on an Edge Impulse GitHub repository, which was adapted from an existing rock paper scissors image recognition project to instead perform facial recognition. The Arduino IDE was used for device side integration, while the Python code was used for model handling, data processing, and supporting scripts during development and training.
 
 ![OV7675](../docs/OV7675.webp)
-![OV7675](../docs/arduinoTinyML.webp)
+![TinyML](../docs/arduinoTinyML.webp)
 
 
 ### Data Collection 
@@ -38,7 +38,7 @@ The system was built using an Arduino Nano 33 BLE Sense Lite paired with an OV76
 Face images were captured directly using the OV7675 camera on the Arduino device. Images were labeled into three categories: recognized person (known resident, labeled "Nate"), unknown, and background. Multiple images were collected under normal indoor lighting conditions to reflect a realistic door camera scenario. These labeled images were uploaded to Edge Impulse for training and validation. An example of this setup is shown in the image below:
 
 
-![OV7675](../docs/ImageCaptureEx.webp)
+![DataCollection](../docs/ImageCaptureExample.png)
 
 
 ### Run the program 
