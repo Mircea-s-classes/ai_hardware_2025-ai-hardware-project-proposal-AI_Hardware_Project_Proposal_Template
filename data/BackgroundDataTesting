@@ -1,0 +1,70 @@
+Background 5 second test - One Spot
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 141 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99609
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00391
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99219
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00781
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.98828
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.01172
+Recv: ---
+Recv: run_classifier returned: 0
+Recv: Timing: DSP 1 ms, inference 140 ms, anomaly 0 ms
+Recv: Predictions:
+Recv: BACKGROUND: 0.99219
+Recv: NATE: 0.00000
+Recv: UNKNOWN: 0.00781
