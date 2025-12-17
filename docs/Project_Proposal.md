@@ -76,7 +76,7 @@ Our demo maps detected body poses to Clash Royale game emotes, demonstrating app
 
 2. **Low Latency:** Maintain <100ms total latency from pose to emote display for responsive interaction.
 
-3. **Classification Accuracy:** Achieve >85% accuracy on 5 pose classes using self-collected training data.
+3. **Classification Accuracy:** Achieve >85% accuracy on 4 pose classes using self-collected training data.
 
 4. **Thermal Stability:** Ensure sustained operation without thermal throttling during extended use (>30 minutes).
 
@@ -179,7 +179,7 @@ Instead of using raw landmarks (which would require deep learning), we extract *
 - 100 decision trees
 - Max depth: 10
 - Features: 45 geometric measurements
-- Classes: 5 poses
+- Classes: 4 poses
 
 ### 5.7 Data Collection
 
@@ -192,11 +192,10 @@ We collect our own training data using the built-in data collector:
 | 1 | Yawning | Hands near face, stretching |
 | 2 | Crying | Hands covering face |
 | 3 | Taunting | Arms crossed or dismissive gesture |
-| 4 | Mean Laugh | Pointing/mocking gesture |
 
 **Collection Process:**
 1. Run `data_collector.py`
-2. Press number keys (0-4) to record poses
+2. Press number keys (0-3) to record poses
 3. Collect 50-100 samples per pose
 4. Press 't' to train model
 5. Model and data automatically saved
@@ -234,7 +233,7 @@ Our custom metrics system captures:
 ### 6.1 Working Demo System
 
 - [x] Real-time pose detection running on Raspberry Pi 4
-- [x] Interactive emote display with 5 pose classes
+- [x] Interactive emote display with 4 pose classes
 - [x] Audio feedback for detected poses
 - [x] Live FPS and confidence display
 - [x] Screenshot capability

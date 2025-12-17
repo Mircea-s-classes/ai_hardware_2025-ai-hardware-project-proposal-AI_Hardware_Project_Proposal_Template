@@ -168,43 +168,103 @@ class PoseDataCollector:
         self.detector.release()
     
     def _draw_ui(self, frame, pose_landmarks):
-        """Draw UI overlay on frame"""
+        """Draw modern UI overlay on frame"""
         h, w = frame.shape[:2]
         
-        # Background for text
-        cv2.rectangle(frame, (0, 0), (400, 150), (0, 0, 0), -1)
-        cv2.rectangle(frame, (0, 0), (400, 150), (255, 255, 255), 1)
+        # Modern header bar (dark blue-gray)
+        header_height = 100
+        cv2.rectangle(frame, (0, 0), (w, header_height), (35, 35, 45), -1)
         
-        # Current pose
-        cv2.putText(frame, f"Pose: {self.pose_labels[self.current_pose]}", 
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        # Accent line
+        cv2.rectangle(frame, (0, header_height-3), (w, header_height), (0, 140, 255), -1)
         
-        # Sample count
+        # Title with modern font
+        cv2.putText(frame, "POSE DATA COLLECTOR", (20, 35),
+                   cv2.FONT_HERSHEY_DUPLEX, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+        
+        # Current pose indicator box
+        pose_name = self.pose_labels[self.current_pose]
+        cv2.rectangle(frame, (20, 50), (300, 88), (50, 50, 60), -1)
+        cv2.rectangle(frame, (20, 50), (300, 88), (0, 200, 100), 2)
+        cv2.putText(frame, f"Recording: {pose_name}", (30, 73),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 150), 2, cv2.LINE_AA)
+        
+        # Sample counter box
         total = len(self.collected_data)
-        cv2.putText(frame, f"Samples: {self.collected_samples}/{self.samples_per_pose} (Total: {total})", 
-                   (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+        cv2.rectangle(frame, (320, 50), (520, 88), (50, 50, 60), -1)
+        cv2.rectangle(frame, (320, 50), (520, 88), (0, 140, 255), 2)
+        cv2.putText(frame, f"{self.collected_samples}/{self.samples_per_pose}", (335, 73),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 255), 2, cv2.LINE_AA)
         
-        # Auto-collect status
-        status = "ON" if self.auto_collect else "OFF"
-        color = (0, 255, 0) if self.auto_collect else (0, 0, 255)
-        cv2.putText(frame, f"Auto-collect: {status}", 
-                   (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        # Total samples
+        cv2.putText(frame, f"Total: {total}", (445, 73),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1, cv2.LINE_AA)
         
-        # Detection status
-        if pose_landmarks is not None:
-            cv2.putText(frame, "Pose: DETECTED", 
-                       (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+        # Status indicators in top right
+        status_x = w - 180
+        
+        # Auto-collect badge
+        if self.auto_collect:
+            cv2.rectangle(frame, (status_x, 25), (status_x + 80, 55), (0, 60, 60), -1)
+            cv2.rectangle(frame, (status_x, 25), (status_x + 80, 55), (0, 255, 255), 2)
+            cv2.putText(frame, "AUTO", (status_x + 15, 45),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2, cv2.LINE_AA)
         else:
-            cv2.putText(frame, "Pose: NOT DETECTED", 
-                       (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 1)
+            cv2.rectangle(frame, (status_x, 25), (status_x + 80, 55), (40, 40, 50), -1)
+            cv2.rectangle(frame, (status_x, 25), (status_x + 80, 55), (100, 100, 120), 2)
+            cv2.putText(frame, "MANUAL", (status_x + 8, 45),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1, cv2.LINE_AA)
         
-        # Instructions at bottom
-        cv2.putText(frame, "0-3: Select pose | a: Auto-collect | s: Save | t: Train | q: Quit", 
-                   (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        # Detection indicator
+        status_x += 95
+        if pose_landmarks is not None:
+            cv2.rectangle(frame, (status_x, 25), (status_x + 70, 55), (0, 60, 0), -1)
+            cv2.rectangle(frame, (status_x, 25), (status_x + 70, 55), (0, 255, 0), 2)
+            cv2.putText(frame, "READY", (status_x + 8, 45),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 2, cv2.LINE_AA)
+        else:
+            cv2.rectangle(frame, (status_x, 25), (status_x + 70, 55), (60, 0, 0), -1)
+            cv2.rectangle(frame, (status_x, 25), (status_x + 70, 55), (200, 0, 0), 2)
+            cv2.putText(frame, "NO POSE", (status_x + 2, 45),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 0, 0), 1, cv2.LINE_AA)
         
-        # Visual indicator when collecting
+        # Modern footer with controls
+        footer_height = 50
+        cv2.rectangle(frame, (0, h - footer_height), (w, h), (35, 35, 45), -1)
+        cv2.rectangle(frame, (0, h - footer_height), (w, h - footer_height + 2), (0, 140, 255), -1)
+        
+        # Control instructions
+        controls = [
+            ("0-3", "Pose"),
+            ("SPACE", "Capture"),
+            ("A", "Auto"),
+            ("S", "Save"),
+            ("T", "Train"),
+            ("Q", "Quit")
+        ]
+        
+        x_offset = 15
+        for key, action in controls:
+            # Key button
+            key_width = len(key) * 11 + 16
+            cv2.rectangle(frame, (x_offset, h - 38), (x_offset + key_width, h - 15),
+                         (60, 60, 70), -1)
+            cv2.rectangle(frame, (x_offset, h - 38), (x_offset + key_width, h - 15),
+                         (100, 100, 120), 1)
+            
+            cv2.putText(frame, key, (x_offset + 8, h - 23),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+            
+            # Action label
+            cv2.putText(frame, action, (x_offset + key_width + 6, h - 23),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.3, (180, 180, 180), 1, cv2.LINE_AA)
+            
+            x_offset += key_width + len(action) * 6 + 20
+        
+        # Recording indicator when auto-collecting
         if self.auto_collect and pose_landmarks is not None:
-            cv2.circle(frame, (w - 30, 30), 15, (0, 255, 0), -1)
+            cv2.circle(frame, (w - 25, h - 25), 10, (0, 255, 0), -1)
+            cv2.circle(frame, (w - 25, h - 25), 12, (0, 200, 0), 2)
     
     def _save_data(self):
         """Save collected data to files"""

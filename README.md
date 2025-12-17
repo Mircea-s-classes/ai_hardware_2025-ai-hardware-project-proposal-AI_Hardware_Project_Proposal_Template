@@ -131,7 +131,7 @@ python main.py --fast --metrics
 | `--skip 2` | Process every 2nd frame |
 | `--scale 2` | 2x display scaling |
 
-## 🎮 Supported Poses (5 Classes)
+## 🎮 Supported Poses (4 Classes)
 
 | ID | Pose | Gesture | Emote |
 |----|------|---------|-------|
@@ -139,7 +139,6 @@ python main.py --fast --metrics
 | 1 | **Yawning** | Hands near mouth | 🥱 Yawning |
 | 2 | **Crying** | Hands covering face | 😢 Crying |
 | 3 | **Taunting** | Arms crossed | 😏 Taunting |
-| 4 | **Mean Laugh** | Pointing gesture | 🤣 Mean Laugh |
 
 ## 📊 Performance Metrics
 

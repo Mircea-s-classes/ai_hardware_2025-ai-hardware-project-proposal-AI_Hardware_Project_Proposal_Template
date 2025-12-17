@@ -353,48 +353,173 @@ class EmoteDetector:
     
     def _draw_ui(self, frame, pose_name, confidence, all_confidences, 
                  fps, show_fps, show_confidence):
-        """Draw UI overlay"""
+        """Draw modern UI overlay"""
         h, w = frame.shape[:2]
         
-        # Title
-        cv2.putText(frame, "Clash Royale Emote Detector", (10, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        # Modern header bar
+        header_height = 90
+        cv2.rectangle(frame, (0, 0), (w, header_height), (35, 35, 45), -1)
+        cv2.rectangle(frame, (0, header_height-3), (w, header_height), (0, 140, 255), -1)
         
-        # Pose prediction with color coding
+        # Title with modern styling
+        cv2.putText(frame, "EMOTE DETECTOR", (20, 38),
+                   cv2.FONT_HERSHEY_DUPLEX, 0.95, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(frame, "CLASH ROYALE", (20, 35),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (100, 100, 120), 1, cv2.LINE_AA)
+        
+        # Pose prediction box with confidence-based styling
+        pose_x, pose_y = 20, 50
+        pose_width = 350
+        pose_height = 35
+        
+        # Color coding based on confidence
         if confidence > 0.7:
-            color = (0, 255, 0)  # Green
+            accent_color = (0, 255, 100)  # Green
+            bg_color = (0, 60, 30)
+            status = "HIGH"
         elif confidence > 0.4:
-            color = (0, 255, 255)  # Yellow
+            accent_color = (0, 255, 255)  # Yellow
+            bg_color = (60, 60, 0)
+            status = "MEDIUM"
         else:
-            color = (0, 0, 255)  # Red
+            accent_color = (0, 100, 255)  # Blue
+            bg_color = (40, 40, 60)
+            status = "LOW"
         
-        cv2.putText(frame, f"Pose: {pose_name} ({confidence:.2f})", (10, 70),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+        # Pose box
+        cv2.rectangle(frame, (pose_x, pose_y), (pose_x + pose_width, pose_y + pose_height),
+                     bg_color, -1)
+        cv2.rectangle(frame, (pose_x, pose_y), (pose_x + pose_width, pose_y + pose_height),
+                     accent_color, 2)
         
-        # All confidences
-        if show_confidence and all_confidences:
-            y_offset = 100
-            for pose, conf in sorted(all_confidences.items(), 
-                                    key=lambda x: x[1], reverse=True):
-                if conf > 0.1:
-                    cv2.putText(frame, f"  {pose}: {conf:.2f}", (10, y_offset),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                    y_offset += 20
+        # Pose name
+        cv2.putText(frame, pose_name, (pose_x + 10, pose_y + 24),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, accent_color, 2, cv2.LINE_AA)
         
-        # FPS
+        # Confidence badge
+        conf_text = f"{confidence:.0%}"
+        cv2.putText(frame, conf_text, (pose_x + pose_width - 80, pose_y + 24),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, accent_color, 2, cv2.LINE_AA)
+        
+        # FPS counter in top right
         if show_fps:
-            cv2.putText(frame, f"FPS: {fps:.1f}", (w - 120, 30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            fps_x = w - 150
+            fps_y = 25
+            fps_width = 130
+            fps_height = 45
+            
+            # FPS box
+            cv2.rectangle(frame, (fps_x, fps_y), (fps_x + fps_width, fps_y + fps_height),
+                         (50, 50, 60), -1)
+            cv2.rectangle(frame, (fps_x, fps_y), (fps_x + fps_width, fps_y + fps_height),
+                         (0, 200, 255), 2)
+            
+            # FPS label
+            cv2.putText(frame, "FPS", (fps_x + 10, fps_y + 20),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1, cv2.LINE_AA)
+            
+            # FPS value
+            fps_color = (0, 255, 100) if fps > 15 else (0, 200, 255) if fps > 8 else (0, 100, 255)
+            cv2.putText(frame, f"{fps:.1f}", (fps_x + 50, fps_y + 38),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, fps_color, 2, cv2.LINE_AA)
         
-        # Overlay emote on main frame
+        # Confidence breakdown sidebar (if enabled)
+        if show_confidence and all_confidences:
+            sidebar_x = w - 240
+            sidebar_y = 105
+            sidebar_width = 220
+            
+            # Sidebar background
+            sidebar_height = min(len(all_confidences) * 35 + 40, 200)
+            cv2.rectangle(frame, (sidebar_x, sidebar_y),
+                         (sidebar_x + sidebar_width, sidebar_y + sidebar_height),
+                         (30, 30, 40), -1)
+            
+            # Sidebar title
+            cv2.putText(frame, "CONFIDENCE", (sidebar_x + 15, sidebar_y + 25),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1, cv2.LINE_AA)
+            
+            # Confidence bars
+            y_offset = sidebar_y + 45
+            for pose, conf in sorted(all_confidences.items(),
+                                    key=lambda x: x[1], reverse=True):
+                if conf > 0.05:
+                    # Pose name
+                    text_color = (0, 255, 150) if pose == pose_name else (180, 180, 180)
+                    cv2.putText(frame, pose, (sidebar_x + 15, y_offset),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.4, text_color, 1, cv2.LINE_AA)
+                    
+                    # Progress bar
+                    bar_x = sidebar_x + 15
+                    bar_y = y_offset + 5
+                    bar_width = 190
+                    bar_height = 8
+                    bar_fill = int(bar_width * conf)
+                    
+                    # Bar background
+                    cv2.rectangle(frame, (bar_x, bar_y),
+                                 (bar_x + bar_width, bar_y + bar_height),
+                                 (50, 50, 60), -1)
+                    
+                    # Bar fill
+                    if bar_fill > 0:
+                        bar_color = accent_color if pose == pose_name else (0, 140, 255)
+                        cv2.rectangle(frame, (bar_x, bar_y),
+                                     (bar_x + bar_fill, bar_y + bar_height),
+                                     bar_color, -1)
+                    
+                    # Percentage
+                    cv2.putText(frame, f"{conf:.0%}", (bar_x + bar_width - 30, y_offset),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.3, (130, 130, 130), 1, cv2.LINE_AA)
+                    
+                    y_offset += 30
+        
+        # Overlay emote on main frame (larger, with shadow)
         if pose_name in self.reference_images:
-            frame = self._overlay_emote(frame, pose_name, 
-                                       position=(w - 140, h - 140),
-                                       size=(120, 120))
+            emote_size = 160
+            emote_x = w - emote_size - 20
+            emote_y = h - emote_size - 70
+            
+            # Shadow effect
+            cv2.rectangle(frame, (emote_x - 3, emote_y - 3),
+                         (emote_x + emote_size + 3, emote_y + emote_size + 3),
+                         (0, 0, 0), -1)
+            
+            # Emote overlay
+            frame = self._overlay_emote(frame, pose_name,
+                                       position=(emote_x, emote_y),
+                                       size=(emote_size, emote_size))
         
-        # Instructions
-        cv2.putText(frame, "q=quit, s=save, m=metrics", (10, h - 10),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        # Modern footer
+        footer_height = 45
+        cv2.rectangle(frame, (0, h - footer_height), (w, h), (35, 35, 45), -1)
+        cv2.rectangle(frame, (0, h - footer_height), (w, h - footer_height + 2),
+                     (0, 140, 255), -1)
+        
+        # Control buttons
+        controls = [
+            ("Q", "Quit"),
+            ("S", "Save"),
+            ("M", "Metrics")
+        ]
+        
+        x_offset = 15
+        for key, action in controls:
+            key_width = 30
+            # Key button
+            cv2.rectangle(frame, (x_offset, h - 35), (x_offset + key_width, h - 12),
+                         (60, 60, 70), -1)
+            cv2.rectangle(frame, (x_offset, h - 35), (x_offset + key_width, h - 12),
+                         (100, 100, 120), 1)
+            
+            cv2.putText(frame, key, (x_offset + 9, h - 20),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA)
+            
+            # Action label
+            cv2.putText(frame, action, (x_offset + key_width + 8, h - 20),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.35, (180, 180, 180), 1, cv2.LINE_AA)
+            
+            x_offset += key_width + len(action) * 7 + 25
     
     def _show_emote_window(self, pose_name):
         """Show emote in separate window"""

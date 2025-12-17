@@ -4,40 +4,39 @@ POSE CLASSIFIER TRAINING RESULTS
 
 📊 Dataset Information:
 ----------------------------------------
-  Total samples: 500
-  Training samples: 400
-  Test samples: 100
+  Total samples: 400
+  Training samples: 320
+  Test samples: 80
   Number of features: 18
-  Number of classes: 5
+  Number of classes: 4
 
 📋 Model Configuration:
 ----------------------------------------
   Algorithm: Random Forest
   Number of trees: 100
   Max depth: 10
-  Training time: 0.062 seconds
+  Training time: 0.053 seconds
 
 📈 Performance Metrics:
 ----------------------------------------
   Training Accuracy: 100.00%
-  Test Accuracy: 96.00%
-  Cross-Val Mean: 96.60%
-  Cross-Val Std: 4.41%
+  Test Accuracy: 97.50%
+  Cross-Val Mean: 95.25%
+  Cross-Val Std: 6.44%
 
 🎯 Per-Class Accuracy:
 ----------------------------------------
   Laughing: 100.00%
-  Yawning: 95.00%
+  Yawning: 100.00%
   Crying: 90.00%
   Taunting: 100.00%
-  Mean Laugh: 95.00%
 
 🔑 Top Important Features:
 ----------------------------------------
-  1. Right Hand Height: 0.1537
-  2. Left Hand Height: 0.1412
-  3. Right Hand Offset: 0.1215
-  4. Body Symmetry: 0.1157
-  5. Right Arm Ext: 0.0717
+  1. Left Hand Height: 0.1242
+  2. Right Arm Angle: 0.1142
+  3. Body Symmetry: 0.1118
+  4. Right Arm Ext: 0.0995
+  5. Right Hand Height: 0.0942
 
 ============================================================
