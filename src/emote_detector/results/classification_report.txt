@@ -1,15 +1,15 @@
 Pose Classification Report
 ============================================================
 
-Generated: 2025-12-17T18:28:39.969881
+Generated: 2025-12-17T18:58:03.016848
 
               precision    recall  f1-score   support
 
-    Laughing     0.9524    1.0000    0.9756        20
-     Yawning     0.9524    1.0000    0.9756        20
+    Laughing     1.0000    1.0000    1.0000        20
+     Yawning     0.9091    1.0000    0.9524        20
       Crying     1.0000    0.9000    0.9474        20
     Taunting     1.0000    1.0000    1.0000        20
 
     accuracy                         0.9750        80
-   macro avg     0.9762    0.9750    0.9746        80
-weighted avg     0.9762    0.9750    0.9746        80
+   macro avg     0.9773    0.9750    0.9749        80
+weighted avg     0.9773    0.9750    0.9749        80

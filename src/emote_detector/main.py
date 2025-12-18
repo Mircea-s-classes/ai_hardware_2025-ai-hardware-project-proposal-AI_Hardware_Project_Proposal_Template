@@ -172,7 +172,7 @@ class EmoteDetector:
     
     def run(self, camera_index=0, show_fps=True, show_confidence=True, 
             fast_mode=False, resolution=(640, 480), skip_frames=1, display_scale=1.0,
-            collect_metrics=False):
+            collect_metrics=False, headless=False):
         """
         Run the emote detector
         
@@ -230,310 +230,521 @@ class EmoteDetector:
         if fast_mode:
             print(f"⚡ Fast mode: skip_frames={skip_frames}")
         
-        # Only create emote window if not in fast mode
-        if not fast_mode:
+        # Only create emote window if not in fast mode or headless
+        if not fast_mode and not headless:
             cv2.namedWindow('Emote', cv2.WINDOW_NORMAL)
             cv2.resizeWindow('Emote', 200, 200)
+        
+        if headless:
+            print("🚀 Headless mode: Display disabled, pure AI performance test")
+            print("   Will run for 60 seconds. Press Ctrl+C to stop early.")
         
         frame_count = 0
         last_pose_name = "No Pose"
         last_confidence = 0.0
         last_all_confidences = {}
         
-        while True:
-            # Start frame timing
-            if self.metrics:
-                self.metrics.start_frame()
-                
-            ret, frame = cap.read()
-            if not ret:
-                break
-            
-            frame = cv2.flip(frame, 1)  # Mirror
-            frame_count += 1
-            
-            # Skip frames for performance
-            if frame_count % skip_frames == 0:
-                # Detect landmarks (MediaPipe inference)
+        # Headless mode timer
+        headless_start_time = time.time() if headless else None
+        headless_duration = 60  # seconds
+        
+        try:
+            while True:
+                # Start frame timing
                 if self.metrics:
-                    self.metrics.start_mediapipe()
-                results = self.detector.detect(frame)
-                if self.metrics:
-                    self.metrics.end_mediapipe()
-                
-                # Draw landmarks
-                frame = self.detector.draw_landmarks(frame, results)
-                
-                # Get pose data and classify
-                landmark_data = self.detector.get_landmark_data(results)
-                pose_landmarks = landmark_data.get('pose')
-                
-                pose_name = "No Pose"
-                confidence = 0.0
-                all_confidences = {}
-                
-                if pose_landmarks is not None:
-                    # Classifier inference
-                    if self.metrics:
-                        self.metrics.start_classifier()
-                    pose_name, confidence = self.classifier.predict(pose_landmarks)
-                    all_confidences = self.classifier.get_all_confidences(pose_landmarks)
-                    if self.metrics:
-                        self.metrics.end_classifier()
-                        self.metrics.record_prediction(pose_name, confidence)
+                    self.metrics.start_frame()
                     
-                    # Play sound
-                    if pose_name != "No Pose" and confidence > 0.5:
-                        self._play_sound(pose_name)
+                ret, frame = cap.read()
+                if not ret:
+                    break
                 
-                last_pose_name = pose_name
-                last_confidence = confidence
-                last_all_confidences = all_confidences
+                frame = cv2.flip(frame, 1)  # Mirror
+                frame_count += 1
                 
-                # Collect system metrics periodically
-                if self.metrics and frame_count % 10 == 0:
-                    self.metrics.collect_system_metrics()
-            else:
-                # Use cached results, still draw landmarks if available
-                pose_name = last_pose_name
-                confidence = last_confidence
-                all_confidences = last_all_confidences
+                # Skip frames for performance
+                if frame_count % skip_frames == 0:
+                    # Resize frame for MediaPipe inference if needed
+                    process_frame = frame
+                    if fast_mode:
+                        # Ensure frame is actually 320x240 for MediaPipe
+                        if frame.shape[0] != 240 or frame.shape[1] != 320:
+                            process_frame = cv2.resize(frame, (320, 240), interpolation=cv2.INTER_LINEAR)
+                    
+                    # Debug: Print frame shape on first inference
+                    if frame_count == skip_frames:
+                        print(f"🔍 [DEBUG] Camera frame shape: {frame.shape}, MediaPipe process frame: {process_frame.shape}")
+                    
+                    # Detect landmarks (MediaPipe inference)
+                    if self.metrics:
+                        self.metrics.start_mediapipe()
+                    results = self.detector.detect(process_frame)
+                    if self.metrics:
+                        self.metrics.end_mediapipe()
+                    
+                    # Draw landmarks
+                    frame = self.detector.draw_landmarks(frame, results)
+                    
+                    # Get pose data and classify
+                    landmark_data = self.detector.get_landmark_data(results)
+                    pose_landmarks = landmark_data.get('pose')
+                    
+                    pose_name = "No Pose"
+                    confidence = 0.0
+                    all_confidences = {}
+                    
+                    if pose_landmarks is not None:
+                        # Classifier inference
+                        if self.metrics:
+                            self.metrics.start_classifier()
+                        pose_name, confidence = self.classifier.predict(pose_landmarks)
+                        all_confidences = self.classifier.get_all_confidences(pose_landmarks)
+                        if self.metrics:
+                            self.metrics.end_classifier()
+                            self.metrics.record_prediction(pose_name, confidence)
+                        
+                        # Play sound
+                        if pose_name != "No Pose" and confidence > 0.5:
+                            self._play_sound(pose_name)
+                    
+                    last_pose_name = pose_name
+                    last_confidence = confidence
+                    last_all_confidences = all_confidences
+                    
+                    # Collect system metrics periodically
+                    if self.metrics and frame_count % 10 == 0:
+                        self.metrics.collect_system_metrics()
+                else:
+                    # Use cached results, still draw landmarks if available
+                    pose_name = last_pose_name
+                    confidence = last_confidence
+                    all_confidences = last_all_confidences
+                
+                # Calculate FPS
+                fps = self._calculate_fps()
+                
+                # Scale up frame for display if needed
+                if display_scale != 1.0:
+                    frame = cv2.resize(frame, (display_width, display_height), 
+                                      interpolation=cv2.INTER_LINEAR)
+                
+                # Draw UI (after scaling so text is readable)
+                self._draw_ui(frame, pose_name, confidence, all_confidences, 
+                             fps, show_fps, show_confidence)
+                
+                # Show emote in separate window (skip in fast mode or headless)
+                if not fast_mode and not headless:
+                    self._show_emote_window(pose_name)
+                
+                # Display main frame (skip if headless)
+                if not headless:
+                    cv2.imshow('Clash Royale Emote Detector', frame)
+                
+                # End frame timing
+                if self.metrics:
+                    self.metrics.end_frame()
+                
+                # Handle keyboard or auto-quit in headless mode
+                if headless:
+                    # Check time limit
+                    if time.time() - headless_start_time >= headless_duration:
+                        print(f"\n⏱️  {headless_duration} seconds elapsed, stopping...")
+                        break
+                    # Print progress every 10 seconds
+                    elapsed = time.time() - headless_start_time
+                    if frame_count % 100 == 0:
+                        print(f"⏱️  Running... {elapsed:.0f}s / {headless_duration}s (Frames: {frame_count})", end='\r', flush=True)
+                    key = 0xFF  # No keyboard input
+                else:
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
+                        break
+                    elif key == ord('s'):
+                        filename = f"screenshot_{int(time.time())}.png"
+                        cv2.imwrite(filename, frame)
+                        print(f"📸 Screenshot saved: {filename}")
+                    elif key == ord('m') and self.metrics:
+                        # Print live metrics summary
+                        self.metrics.print_summary()
+        
+        except KeyboardInterrupt:
+            print("\n\n⚠️  Interrupted by user (Ctrl+C)")
+        finally:
+            # Cleanup
+            cap.release()
+            cv2.destroyAllWindows()
+            self.detector.release()
             
-            # Calculate FPS
-            fps = self._calculate_fps()
-            
-            # Scale up frame for display if needed
-            if display_scale != 1.0:
-                frame = cv2.resize(frame, (display_width, display_height), 
-                                  interpolation=cv2.INTER_LINEAR)
-            
-            # Draw UI (after scaling so text is readable)
-            self._draw_ui(frame, pose_name, confidence, all_confidences, 
-                         fps, show_fps, show_confidence)
-            
-            # Show emote in separate window (skip in fast mode)
-            if not fast_mode:
-                self._show_emote_window(pose_name)
-            
-            # Display main frame
-            cv2.imshow('Clash Royale Emote Detector', frame)
-            
-            # End frame timing
+            # Save metrics if enabled
             if self.metrics:
-                self.metrics.end_frame()
-            
-            # Handle keyboard
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
-            elif key == ord('s'):
-                filename = f"screenshot_{int(time.time())}.png"
-                cv2.imwrite(filename, frame)
-                print(f"📸 Screenshot saved: {filename}")
-            elif key == ord('m') and self.metrics:
-                # Print live metrics summary
+                self.metrics.end_session()
                 self.metrics.print_summary()
+                json_file = self.metrics.save_metrics()
+                self.metrics.save_csv()
+                # Generate report
+                from performance_metrics import generate_report
+                generate_report(json_file)
+            
+            print("\n✅ Detector stopped")
+    
+    def _draw_rounded_rect(self, frame, pt1, pt2, color, thickness=-1, radius=10, alpha=1.0):
+        """Draw a rounded rectangle with optional transparency"""
+        x1, y1 = pt1
+        x2, y2 = pt2
         
-        # Cleanup
-        cap.release()
-        cv2.destroyAllWindows()
-        self.detector.release()
+        if alpha < 1.0:
+            overlay = frame.copy()
+        else:
+            overlay = frame
         
-        # Save metrics if enabled
-        if self.metrics:
-            self.metrics.end_session()
-            self.metrics.print_summary()
-            json_file = self.metrics.save_metrics()
-            self.metrics.save_csv()
-            # Generate report
-            from performance_metrics import generate_report
-            generate_report(json_file)
+        # Clamp radius
+        radius = min(radius, (x2 - x1) // 2, (y2 - y1) // 2)
         
-        print("\n✅ Detector stopped")
+        if thickness == -1:
+            # Filled rounded rectangle
+            cv2.rectangle(overlay, (x1 + radius, y1), (x2 - radius, y2), color, -1)
+            cv2.rectangle(overlay, (x1, y1 + radius), (x2, y2 - radius), color, -1)
+            cv2.circle(overlay, (x1 + radius, y1 + radius), radius, color, -1)
+            cv2.circle(overlay, (x2 - radius, y1 + radius), radius, color, -1)
+            cv2.circle(overlay, (x1 + radius, y2 - radius), radius, color, -1)
+            cv2.circle(overlay, (x2 - radius, y2 - radius), radius, color, -1)
+        else:
+            # Border only
+            cv2.line(overlay, (x1 + radius, y1), (x2 - radius, y1), color, thickness)
+            cv2.line(overlay, (x1 + radius, y2), (x2 - radius, y2), color, thickness)
+            cv2.line(overlay, (x1, y1 + radius), (x1, y2 - radius), color, thickness)
+            cv2.line(overlay, (x2, y1 + radius), (x2, y2 - radius), color, thickness)
+            cv2.ellipse(overlay, (x1 + radius, y1 + radius), (radius, radius), 180, 0, 90, color, thickness)
+            cv2.ellipse(overlay, (x2 - radius, y1 + radius), (radius, radius), 270, 0, 90, color, thickness)
+            cv2.ellipse(overlay, (x1 + radius, y2 - radius), (radius, radius), 90, 0, 90, color, thickness)
+            cv2.ellipse(overlay, (x2 - radius, y2 - radius), (radius, radius), 0, 0, 90, color, thickness)
+        
+        if alpha < 1.0:
+            cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+        
+        return frame
+    
+    def _draw_gradient_bar(self, frame, x, y, width, height, fill_ratio, base_color, glow=False):
+        """Draw a modern gradient progress bar"""
+        # Background track
+        cv2.rectangle(frame, (x, y), (x + width, y + height), (40, 40, 50), -1)
+        
+        fill_width = int(width * fill_ratio)
+        if fill_width > 0:
+            # Create gradient effect by drawing multiple rectangles
+            for i in range(fill_width):
+                ratio = i / max(fill_width, 1)
+                # Lighten color towards the end
+                color = tuple(min(255, int(c * (0.7 + 0.3 * ratio))) for c in base_color)
+                cv2.line(frame, (x + i, y), (x + i, y + height), color, 1)
+            
+            # Add highlight on top
+            highlight_y = y + 1
+            cv2.line(frame, (x, highlight_y), (x + fill_width, highlight_y), 
+                    tuple(min(255, c + 40) for c in base_color), 1)
     
     def _draw_ui(self, frame, pose_name, confidence, all_confidences, 
                  fps, show_fps, show_confidence):
-        """Draw modern UI overlay"""
+        """Draw modern, professional UI overlay - scales with frame size"""
         h, w = frame.shape[:2]
         
-        # Modern header bar
-        header_height = 90
-        cv2.rectangle(frame, (0, 0), (w, header_height), (35, 35, 45), -1)
-        cv2.rectangle(frame, (0, header_height-3), (w, header_height), (0, 140, 255), -1)
+        # Scale factor based on frame width (1.0 at 1280px width)
+        scale = w / 1280.0
         
-        # Title with modern styling
-        cv2.putText(frame, "EMOTE DETECTOR", (20, 38),
-                   cv2.FONT_HERSHEY_DUPLEX, 0.95, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(frame, "CLASH ROYALE", (20, 35),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (100, 100, 120), 1, cv2.LINE_AA)
+        # Color palette - modern dark theme with gold/amber accents
+        DARK_BG = (18, 18, 24)
+        PANEL_BG = (28, 28, 38)
+        ACCENT_GOLD = (0, 180, 255)  # Gold/amber in BGR
+        ACCENT_CYAN = (220, 180, 0)  # Cyan accent
+        TEXT_PRIMARY = (255, 255, 255)
+        TEXT_SECONDARY = (160, 160, 170)
+        TEXT_MUTED = (100, 100, 110)
         
-        # Pose prediction box with confidence-based styling
-        pose_x, pose_y = 20, 50
-        pose_width = 350
-        pose_height = 35
-        
-        # Color coding based on confidence
+        # Confidence-based accent colors
         if confidence > 0.7:
-            accent_color = (0, 255, 100)  # Green
-            bg_color = (0, 60, 30)
-            status = "HIGH"
+            accent_color = (50, 205, 50)  # Lime green
+            status_text = "HIGH CONFIDENCE"
         elif confidence > 0.4:
-            accent_color = (0, 255, 255)  # Yellow
-            bg_color = (60, 60, 0)
-            status = "MEDIUM"
+            accent_color = (0, 200, 255)  # Amber/gold
+            status_text = "MEDIUM"
         else:
-            accent_color = (0, 100, 255)  # Blue
-            bg_color = (40, 40, 60)
-            status = "LOW"
+            accent_color = (180, 130, 70)  # Steel blue
+            status_text = "DETECTING..."
         
-        # Pose box
-        cv2.rectangle(frame, (pose_x, pose_y), (pose_x + pose_width, pose_y + pose_height),
-                     bg_color, -1)
-        cv2.rectangle(frame, (pose_x, pose_y), (pose_x + pose_width, pose_y + pose_height),
-                     accent_color, 2)
+        # ═══════════════════════════════════════════════════════════
+        # HEADER SECTION - Clean minimal header
+        # ═══════════════════════════════════════════════════════════
+        header_height = int(110 * scale)
         
-        # Pose name
-        cv2.putText(frame, pose_name, (pose_x + 10, pose_y + 24),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, accent_color, 2, cv2.LINE_AA)
+        # Dark header background with subtle gradient effect
+        for i in range(header_height):
+            alpha = 1.0 - (i / header_height) * 0.15
+            color = tuple(int(c * alpha) for c in DARK_BG)
+            cv2.line(frame, (0, i), (w, i), color, 1)
         
-        # Confidence badge
+        # Thin accent line at bottom of header
+        cv2.line(frame, (0, header_height - 1), (w, header_height - 1), ACCENT_GOLD, 3)
+        
+        # App title - clean typography
+        title_y = int(55 * scale)
+        cv2.putText(frame, "EMOTE", (int(30 * scale), title_y),
+                   cv2.FONT_HERSHEY_DUPLEX, 1.6 * scale, TEXT_PRIMARY, int(2 * max(1, scale)), cv2.LINE_AA)
+        cv2.putText(frame, "DETECTOR", (int(175 * scale), title_y),
+                   cv2.FONT_HERSHEY_DUPLEX, 1.6 * scale, ACCENT_GOLD, int(2 * max(1, scale)), cv2.LINE_AA)
+        
+        # Subtitle
+        cv2.putText(frame, "CLASH ROYALE  •  REAL-TIME AI", (int(32 * scale), int(85 * scale)),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.55 * scale, TEXT_MUTED, 1, cv2.LINE_AA)
+        
+        # ═══════════════════════════════════════════════════════════
+        # MAIN DETECTION CARD - Shows current pose
+        # ═══════════════════════════════════════════════════════════
+        card_x = int(25 * scale)
+        card_y = int(130 * scale)
+        card_width = int(480 * scale)
+        card_height = int(70 * scale)
+        
+        # Card background with transparency effect
+        self._draw_rounded_rect(frame, (card_x, card_y), 
+                               (card_x + card_width, card_y + card_height),
+                               PANEL_BG, -1, radius=int(12 * scale), alpha=0.85)
+        
+        # Left accent bar
+        cv2.rectangle(frame, (card_x, card_y + int(8 * scale)), 
+                     (card_x + int(6 * scale), card_y + card_height - int(8 * scale)),
+                     accent_color, -1)
+        
+        # Pose name - larger, bolder
+        display_name = pose_name if pose_name != "No Pose" else "Analyzing..."
+        cv2.putText(frame, display_name, (card_x + int(22 * scale), card_y + int(47 * scale)),
+                   cv2.FONT_HERSHEY_DUPLEX, 1.2 * scale, accent_color, int(2 * max(1, scale)), cv2.LINE_AA)
+        
+        # Confidence percentage - right aligned
         conf_text = f"{confidence:.0%}"
-        cv2.putText(frame, conf_text, (pose_x + pose_width - 80, pose_y + 24),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, accent_color, 2, cv2.LINE_AA)
+        (text_w, _), _ = cv2.getTextSize(conf_text, cv2.FONT_HERSHEY_DUPLEX, 1.3 * scale, 2)
+        cv2.putText(frame, conf_text, (card_x + card_width - text_w - int(20 * scale), card_y + int(48 * scale)),
+                   cv2.FONT_HERSHEY_DUPLEX, 1.3 * scale, TEXT_PRIMARY, int(2 * max(1, scale)), cv2.LINE_AA)
         
-        # FPS counter in top right
+        # ═══════════════════════════════════════════════════════════
+        # FPS INDICATOR - Minimal, top-right
+        # ═══════════════════════════════════════════════════════════
         if show_fps:
-            fps_x = w - 150
-            fps_y = 25
-            fps_width = 130
-            fps_height = 45
+            fps_width = int(120 * scale)
+            fps_height = int(70 * scale)
+            fps_x = w - fps_width - int(25 * scale)
+            fps_y = int(25 * scale)
             
-            # FPS box
-            cv2.rectangle(frame, (fps_x, fps_y), (fps_x + fps_width, fps_y + fps_height),
-                         (50, 50, 60), -1)
-            cv2.rectangle(frame, (fps_x, fps_y), (fps_x + fps_width, fps_y + fps_height),
-                         (0, 200, 255), 2)
+            # FPS card
+            self._draw_rounded_rect(frame, (fps_x, fps_y), 
+                                   (fps_x + fps_width, fps_y + fps_height),
+                                   PANEL_BG, -1, radius=int(10 * scale), alpha=0.9)
+            
+            # Border accent
+            self._draw_rounded_rect(frame, (fps_x, fps_y), 
+                                   (fps_x + fps_width, fps_y + fps_height),
+                                   ACCENT_GOLD, 2, radius=int(10 * scale))
             
             # FPS label
-            cv2.putText(frame, "FPS", (fps_x + 10, fps_y + 20),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1, cv2.LINE_AA)
+            cv2.putText(frame, "FPS", (fps_x + int(18 * scale), fps_y + int(25 * scale)),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, TEXT_MUTED, 1, cv2.LINE_AA)
             
-            # FPS value
-            fps_color = (0, 255, 100) if fps > 15 else (0, 200, 255) if fps > 8 else (0, 100, 255)
-            cv2.putText(frame, f"{fps:.1f}", (fps_x + 50, fps_y + 38),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, fps_color, 2, cv2.LINE_AA)
+            # FPS value with color coding
+            if fps > 20:
+                fps_color = (100, 220, 100)
+            elif fps > 12:
+                fps_color = (0, 200, 255)
+            else:
+                fps_color = (100, 100, 220)
+            
+            cv2.putText(frame, f"{fps:.1f}", (fps_x + int(18 * scale), fps_y + int(55 * scale)),
+                       cv2.FONT_HERSHEY_DUPLEX, 1.0 * scale, fps_color, int(2 * max(1, scale)), cv2.LINE_AA)
         
-        # Confidence breakdown sidebar (if enabled)
+        # ═══════════════════════════════════════════════════════════
+        # CONFIDENCE SIDEBAR - Right side panel
+        # ═══════════════════════════════════════════════════════════
         if show_confidence and all_confidences:
-            sidebar_x = w - 240
-            sidebar_y = 105
-            sidebar_width = 220
+            sidebar_width = int(250 * scale)
+            sidebar_padding = int(18 * scale)
+            sidebar_x = w - sidebar_width - int(25 * scale)
+            sidebar_y = int(220 * scale)
+            
+            # Count visible items
+            visible_items = [(p, c) for p, c in all_confidences.items() if c > 0.03]
+            visible_items = sorted(visible_items, key=lambda x: x[1], reverse=True)[:5]
+            
+            item_height = int(50 * scale)
+            sidebar_height = len(visible_items) * item_height + int(55 * scale)
             
             # Sidebar background
-            sidebar_height = min(len(all_confidences) * 35 + 40, 200)
-            cv2.rectangle(frame, (sidebar_x, sidebar_y),
-                         (sidebar_x + sidebar_width, sidebar_y + sidebar_height),
-                         (30, 30, 40), -1)
+            self._draw_rounded_rect(frame, (sidebar_x, sidebar_y),
+                                   (sidebar_x + sidebar_width, sidebar_y + sidebar_height),
+                                   PANEL_BG, -1, radius=int(12 * scale), alpha=0.88)
             
-            # Sidebar title
-            cv2.putText(frame, "CONFIDENCE", (sidebar_x + 15, sidebar_y + 25),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1, cv2.LINE_AA)
+            # Sidebar header
+            cv2.putText(frame, "CONFIDENCE", (sidebar_x + sidebar_padding, sidebar_y + int(30 * scale)),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6 * scale, TEXT_MUTED, 1, cv2.LINE_AA)
+            
+            # Separator line
+            cv2.line(frame, (sidebar_x + sidebar_padding, sidebar_y + int(42 * scale)),
+                    (sidebar_x + sidebar_width - sidebar_padding, sidebar_y + int(42 * scale)),
+                    (50, 50, 60), 1)
             
             # Confidence bars
-            y_offset = sidebar_y + 45
-            for pose, conf in sorted(all_confidences.items(),
-                                    key=lambda x: x[1], reverse=True):
-                if conf > 0.05:
-                    # Pose name
-                    text_color = (0, 255, 150) if pose == pose_name else (180, 180, 180)
-                    cv2.putText(frame, pose, (sidebar_x + 15, y_offset),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.4, text_color, 1, cv2.LINE_AA)
-                    
-                    # Progress bar
-                    bar_x = sidebar_x + 15
-                    bar_y = y_offset + 5
-                    bar_width = 190
-                    bar_height = 8
-                    bar_fill = int(bar_width * conf)
-                    
-                    # Bar background
-                    cv2.rectangle(frame, (bar_x, bar_y),
-                                 (bar_x + bar_width, bar_y + bar_height),
-                                 (50, 50, 60), -1)
-                    
-                    # Bar fill
-                    if bar_fill > 0:
-                        bar_color = accent_color if pose == pose_name else (0, 140, 255)
-                        cv2.rectangle(frame, (bar_x, bar_y),
-                                     (bar_x + bar_fill, bar_y + bar_height),
-                                     bar_color, -1)
-                    
-                    # Percentage
-                    cv2.putText(frame, f"{conf:.0%}", (bar_x + bar_width - 30, y_offset),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.3, (130, 130, 130), 1, cv2.LINE_AA)
-                    
-                    y_offset += 30
+            y_offset = sidebar_y + int(65 * scale)
+            for pose, conf in visible_items:
+                is_active = pose == pose_name
+                
+                # Pose label
+                label_color = accent_color if is_active else TEXT_SECONDARY
+                cv2.putText(frame, pose, (sidebar_x + sidebar_padding, y_offset),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.55 * scale, label_color, 1, cv2.LINE_AA)
+                
+                # Percentage
+                pct_text = f"{conf:.0%}"
+                (pct_w, _), _ = cv2.getTextSize(pct_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, 1)
+                cv2.putText(frame, pct_text, 
+                           (sidebar_x + sidebar_width - sidebar_padding - pct_w, y_offset),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, TEXT_MUTED, 1, cv2.LINE_AA)
+                
+                # Progress bar
+                bar_x = sidebar_x + sidebar_padding
+                bar_y = y_offset + int(10 * scale)
+                bar_width = sidebar_width - sidebar_padding * 2
+                bar_height = int(10 * scale)
+                
+                bar_color = accent_color if is_active else (80, 80, 90)
+                self._draw_gradient_bar(frame, bar_x, bar_y, bar_width, bar_height, conf, bar_color)
+                
+                y_offset += item_height
         
-        # Overlay emote on main frame (larger, with shadow)
+        # ═══════════════════════════════════════════════════════════
+        # EMOTE DISPLAY - Bottom right with glow effect
+        # ═══════════════════════════════════════════════════════════
         if pose_name in self.reference_images:
-            emote_size = 160
-            emote_x = w - emote_size - 20
-            emote_y = h - emote_size - 70
+            emote_size = int(180 * scale)
+            emote_margin = int(30 * scale)
+            emote_x = w - emote_size - emote_margin
+            emote_y = h - emote_size - int(90 * scale)
             
-            # Shadow effect
-            cv2.rectangle(frame, (emote_x - 3, emote_y - 3),
-                         (emote_x + emote_size + 3, emote_y + emote_size + 3),
-                         (0, 0, 0), -1)
+            # Glow/shadow effect
+            glow_padding = int(10 * scale)
+            self._draw_rounded_rect(frame, 
+                                   (emote_x - glow_padding, emote_y - glow_padding),
+                                   (emote_x + emote_size + glow_padding, emote_y + emote_size + glow_padding),
+                                   (15, 15, 20), -1, radius=int(15 * scale))
             
-            # Emote overlay
+            # Border
+            self._draw_rounded_rect(frame,
+                                   (emote_x - 4, emote_y - 4),
+                                   (emote_x + emote_size + 4, emote_y + emote_size + 4),
+                                   accent_color, 3, radius=int(12 * scale))
+            
+            # Emote image
             frame = self._overlay_emote(frame, pose_name,
                                        position=(emote_x, emote_y),
                                        size=(emote_size, emote_size))
         
-        # Modern footer
-        footer_height = 45
-        cv2.rectangle(frame, (0, h - footer_height), (w, h), (35, 35, 45), -1)
-        cv2.rectangle(frame, (0, h - footer_height), (w, h - footer_height + 2),
-                     (0, 140, 255), -1)
+        # ═══════════════════════════════════════════════════════════
+        # FOOTER - Clean control bar
+        # ═══════════════════════════════════════════════════════════
+        footer_height = int(65 * scale)
+        footer_y = h - footer_height
         
-        # Control buttons
+        # Footer background
+        for i in range(footer_height):
+            alpha = 0.85 + (i / footer_height) * 0.15
+            color = tuple(int(c * alpha) for c in DARK_BG)
+            cv2.line(frame, (0, footer_y + i), (w, footer_y + i), color, 1)
+        
+        # Top accent line
+        cv2.line(frame, (0, footer_y), (w, footer_y), ACCENT_GOLD, 2)
+        
+        # Control buttons - modern pill style
         controls = [
-            ("Q", "Quit"),
-            ("S", "Save"),
-            ("M", "Metrics")
+            ("Q", "Quit", (100, 100, 220)),
+            ("S", "Save", (100, 180, 100)),
+            ("M", "Metrics", (180, 140, 80))
         ]
         
-        x_offset = 15
-        for key, action in controls:
-            key_width = 30
-            # Key button
-            cv2.rectangle(frame, (x_offset, h - 35), (x_offset + key_width, h - 12),
-                         (60, 60, 70), -1)
-            cv2.rectangle(frame, (x_offset, h - 35), (x_offset + key_width, h - 12),
-                         (100, 100, 120), 1)
+        x_offset = int(25 * scale)
+        button_height = int(38 * scale)
+        button_y = footer_y + (footer_height - button_height) // 2
+        
+        for key, action, color in controls:
+            # Calculate button width based on text
+            (action_w, _), _ = cv2.getTextSize(action, cv2.FONT_HERSHEY_SIMPLEX, 0.55 * scale, 1)
+            button_width = int(50 * scale) + action_w + int(25 * scale)
             
-            cv2.putText(frame, key, (x_offset + 9, h - 20),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA)
+            # Button background
+            self._draw_rounded_rect(frame, (x_offset, button_y),
+                                   (x_offset + button_width, button_y + button_height),
+                                   (45, 45, 55), -1, radius=int(8 * scale))
             
-            # Action label
-            cv2.putText(frame, action, (x_offset + key_width + 8, h - 20),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.35, (180, 180, 180), 1, cv2.LINE_AA)
+            # Key badge
+            key_size = int(28 * scale)
+            key_x = x_offset + int(8 * scale)
+            key_y_center = button_y + button_height // 2
+            self._draw_rounded_rect(frame, (key_x, key_y_center - key_size//2),
+                                   (key_x + key_size, key_y_center + key_size//2),
+                                   color, -1, radius=int(5 * scale))
             
-            x_offset += key_width + len(action) * 7 + 25
+            # Key letter
+            cv2.putText(frame, key, (key_x + int(7 * scale), key_y_center + int(6 * scale)),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.55 * scale, (255, 255, 255), 1, cv2.LINE_AA)
+            
+            # Action text
+            cv2.putText(frame, action, (key_x + key_size + int(10 * scale), key_y_center + int(6 * scale)),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.55 * scale, TEXT_SECONDARY, 1, cv2.LINE_AA)
+            
+            x_offset += button_width + int(15 * scale)
     
     def _show_emote_window(self, pose_name):
-        """Show emote in separate window"""
+        """Show emote in separate window with modern styling"""
+        window_size = 220
+        display = np.zeros((window_size, window_size, 3), dtype=np.uint8)
+        
+        # Dark gradient background
+        for i in range(window_size):
+            intensity = 20 + int(10 * (i / window_size))
+            cv2.line(display, (0, i), (window_size, i), (intensity, intensity, intensity + 5), 1)
+        
         if pose_name in self.reference_images:
             emote = self.reference_images[pose_name]
-            emote_display = cv2.resize(emote, (200, 200))
-            if emote_display.shape[2] == 4:
-                emote_display = emote_display[:, :, :3]
-            cv2.imshow('Emote', emote_display)
+            emote_size = 180
+            margin = (window_size - emote_size) // 2
+            
+            # Emote glow effect
+            glow_color = (30, 35, 45)
+            cv2.rectangle(display, (margin - 5, margin - 5), 
+                         (margin + emote_size + 5, margin + emote_size + 5), 
+                         glow_color, -1)
+            
+            # Border
+            cv2.rectangle(display, (margin - 2, margin - 2),
+                         (margin + emote_size + 2, margin + emote_size + 2),
+                         (0, 180, 255), 2)
+            
+            # Resize and place emote
+            emote_resized = cv2.resize(emote, (emote_size, emote_size))
+            if emote_resized.shape[2] == 4:
+                # Handle alpha channel
+                alpha = emote_resized[:, :, 3] / 255.0
+                for c in range(3):
+                    display[margin:margin+emote_size, margin:margin+emote_size, c] = (
+                        alpha * emote_resized[:, :, c] +
+                        (1 - alpha) * display[margin:margin+emote_size, margin:margin+emote_size, c]
+                    )
+            else:
+                display[margin:margin+emote_size, margin:margin+emote_size] = emote_resized[:, :, :3]
         else:
-            blank = np.zeros((200, 200, 3), dtype=np.uint8)
-            cv2.putText(blank, "No Pose", (50, 100),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (128, 128, 128), 2)
-            cv2.imshow('Emote', blank)
+            # No pose detected - show placeholder
+            cv2.putText(display, "Waiting...", (55, 115),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (100, 100, 110), 1, cv2.LINE_AA)
+            # Animated dots effect (simple version)
+            cv2.circle(display, (85, 130), 4, (60, 60, 70), -1)
+            cv2.circle(display, (110, 130), 4, (80, 80, 90), -1)
+            cv2.circle(display, (135, 130), 4, (100, 100, 110), -1)
+        
+        cv2.imshow('Emote', display)
 
 
 def main():
@@ -552,8 +763,10 @@ def main():
     parser.add_argument('--no-confidence', action='store_true',
                        help='Hide confidence scores')
     parser.add_argument('--fast', action='store_true',
-                       help='Fast mode: lower resolution, skip frames')
-    parser.add_argument('--resolution', type=str, default='medium',
+                       help='Fast mode: 320x240, skip=3, complexity=0')
+    parser.add_argument('--ultra-fast', action='store_true',
+                       help='Ultra-fast mode for RPi: 160x120, skip=4, complexity=0')
+    parser.add_argument('--resolution', type=str, default='high',
                        choices=['low', 'medium', 'high'],
                        help='Resolution: low=320x240, medium=640x480, high=1280x720')
     parser.add_argument('--skip', type=int, default=1,
@@ -562,6 +775,8 @@ def main():
                        help='Display scale factor (2.0 = 2x larger window)')
     parser.add_argument('--metrics', action='store_true',
                        help='Enable performance metrics collection (saved to results/metrics/)')
+    parser.add_argument('--headless', action='store_true',
+                       help='Run without display (for pure performance testing)')
     
     args = parser.parse_args()
     
@@ -574,33 +789,41 @@ def main():
     resolution = resolutions[args.resolution]
     
     # Fast mode defaults
-    if args.fast:
+    if args.ultra_fast:
+        resolution = (160, 120)
+        skip_frames = 4
+        complexity = 0
+        display_scale = 4.0  # Scale up to 640x480 for display
+        print("⚡⚡ ULTRA-FAST mode enabled: process 160x120, display 640x480, skip=4, complexity=0")
+    elif args.fast:
         resolution = (320, 240)
-        skip_frames = 2
+        skip_frames = 3  # Increased from 2 to 3 for RPi
         complexity = 0
         display_scale = 2.0  # Scale up to 640x480 for display
-        print("⚡ Fast mode enabled: process 320x240, display 640x480, skip=2, complexity=0")
+        print("⚡ Fast mode enabled: process 320x240, display 640x480, skip=3, complexity=0")
     else:
         skip_frames = args.skip
         complexity = args.complexity
         display_scale = args.scale
     
     # Create and run detector
+    fast_mode_enabled = args.fast or args.ultra_fast
     detector = EmoteDetector(
         model_path=args.model,
         emotes_dir=args.emotes,
-        model_complexity=complexity if args.fast else args.complexity
+        model_complexity=complexity
     )
     
     detector.run(
         camera_index=args.camera,
         show_fps=not args.no_fps,
         show_confidence=not args.no_confidence,
-        fast_mode=args.fast,
+        fast_mode=fast_mode_enabled,
         resolution=resolution,
         skip_frames=skip_frames,
         display_scale=display_scale,
-        collect_metrics=args.metrics
+        collect_metrics=args.metrics,
+        headless=args.headless
     )
 
 

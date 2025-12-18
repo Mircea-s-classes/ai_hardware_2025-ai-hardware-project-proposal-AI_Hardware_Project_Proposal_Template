@@ -1,12 +1,12 @@
 {
   "n_estimators": 100,
   "max_depth": 10,
-  "training_time": 0.053472,
+  "training_time": 0.061359,
   "n_features": 18,
   "train_accuracy": 1.0,
   "test_accuracy": 0.975,
-  "cv_mean": 0.9524999999999999,
-  "cv_std": 0.06442049363362565,
+  "cv_mean": 0.9775,
+  "cv_std": 0.03905124837953326,
   "per_class_accuracy": {
     "Laughing": 100.0,
     "Yawning": 100.0,
@@ -15,27 +15,27 @@
   },
   "top_features": [
     [
-      "Left Hand Height",
-      0.12418289842293724
-    ],
-    [
-      "Right Arm Angle",
-      0.11422417742780648
-    ],
-    [
-      "Body Symmetry",
-      0.11183583085473943
-    ],
-    [
-      "Right Arm Ext",
-      0.09946651730878774
-    ],
-    [
       "Right Hand Height",
-      0.09420422732227968
+      0.12153802167857294
+    ],
+    [
+      "Left Hand Offset",
+      0.11493715390543208
+    ],
+    [
+      "Left Hand Height",
+      0.10829952756195832
+    ],
+    [
+      "Left Arm Ext",
+      0.09836538975646081
+    ],
+    [
+      "Left Arm Angle",
+      0.08199370411734769
     ]
   ],
-  "model_size_kb": 305.6650390625,
+  "model_size_kb": 215.09375,
   "total_samples": 400,
   "training_samples": 320,
   "test_samples": 80,
@@ -46,5 +46,5 @@
     "2": "Crying",
     "3": "Taunting"
   },
-  "timestamp": "2025-12-17T18:28:39.971072"
+  "timestamp": "2025-12-17T18:58:03.018352"
 }

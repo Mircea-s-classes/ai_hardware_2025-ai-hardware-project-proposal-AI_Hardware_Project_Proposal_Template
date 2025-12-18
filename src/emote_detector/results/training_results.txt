@@ -15,14 +15,14 @@ POSE CLASSIFIER TRAINING RESULTS
   Algorithm: Random Forest
   Number of trees: 100
   Max depth: 10
-  Training time: 0.053 seconds
+  Training time: 0.061 seconds
 
 📈 Performance Metrics:
 ----------------------------------------
   Training Accuracy: 100.00%
   Test Accuracy: 97.50%
-  Cross-Val Mean: 95.25%
-  Cross-Val Std: 6.44%
+  Cross-Val Mean: 97.75%
+  Cross-Val Std: 3.91%
 
 🎯 Per-Class Accuracy:
 ----------------------------------------
@@ -33,10 +33,10 @@ POSE CLASSIFIER TRAINING RESULTS
 
 🔑 Top Important Features:
 ----------------------------------------
-  1. Left Hand Height: 0.1242
-  2. Right Arm Angle: 0.1142
-  3. Body Symmetry: 0.1118
-  4. Right Arm Ext: 0.0995
-  5. Right Hand Height: 0.0942
+  1. Right Hand Height: 0.1215
+  2. Left Hand Offset: 0.1149
+  3. Left Hand Height: 0.1083
+  4. Left Arm Ext: 0.0984
+  5. Left Arm Angle: 0.0820
 
 ============================================================

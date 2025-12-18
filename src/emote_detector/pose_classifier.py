@@ -196,12 +196,12 @@ class PoseClassifier:
             X, y, test_size=test_size, random_state=42, stratify=y
         )
         
-        # Train Random Forest
+        # Train Random Forest (ultra-light for RPi inference)
         self.model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=10,
+            n_estimators=10,  # Ultra-light for RPi inference
+            max_depth=4,      # Reduced for faster inference
             random_state=42,
-            n_jobs=-1  # Use all CPU cores
+            n_jobs=1  # Use single core for better inference performance
         )
         
         self.model.fit(X_train, y_train)

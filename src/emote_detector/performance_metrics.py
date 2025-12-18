@@ -99,6 +99,7 @@ class PerformanceMetrics:
         if self._mediapipe_start:
             elapsed_ms = (time.perf_counter() - self._mediapipe_start) * 1000
             self.mediapipe_times.append(elapsed_ms)
+            self._mediapipe_start = None  # Reset for next frame
             
     def start_classifier(self):
         """Mark the start of classifier inference"""
@@ -109,6 +110,7 @@ class PerformanceMetrics:
         if self._classifier_start:
             elapsed_ms = (time.perf_counter() - self._classifier_start) * 1000
             self.classifier_times.append(elapsed_ms)
+            self._classifier_start = None  # Reset for next frame
             
     def record_inference(self, mediapipe_ms, classifier_ms):
         """Record inference times directly"""
@@ -176,7 +178,7 @@ class PerformanceMetrics:
             }
             
         if self.mediapipe_times:
-            mp_arr = np.array(self.mediapipe_times)
+            mp_arr = np.array(list(self.mediapipe_times))  # Convert deque to list first
             stats['mediapipe_inference_ms'] = {
                 'mean': float(np.mean(mp_arr)),
                 'std': float(np.std(mp_arr)),
@@ -236,6 +238,15 @@ class PerformanceMetrics:
         """Print a formatted summary of metrics"""
         stats = self.get_stats()
         
+        # Debug: Show collected sample counts
+        print(f"\n[DEBUG] Collected samples: MediaPipe={len(self.mediapipe_times)}, Classifier={len(self.classifier_times)}, Frames={len(self.frame_times)}")
+        if self.mediapipe_times:
+            import numpy as np
+            mp_vals = list(self.mediapipe_times)
+            print(f"[DEBUG] MediaPipe sample values (first 5): {mp_vals[:5]}")
+            print(f"[DEBUG] MediaPipe mean: {np.mean(mp_vals):.2f}ms")
+        print(f"[DEBUG] Stats keys: {list(stats.keys())}")
+        
         print("\n" + "="*60)
         print("📊 PERFORMANCE METRICS SUMMARY - AI Hardware Project")
         print("="*60)
@@ -256,10 +267,13 @@ class PerformanceMetrics:
             print(f"   Mean: {stats['frame_time_ms']['mean']:.2f} ms")
             print(f"   P50/P95/P99: {stats['frame_time_ms']['p50']:.2f} / {stats['frame_time_ms']['p95']:.2f} / {stats['frame_time_ms']['p99']:.2f} ms")
             
+        print(f"[DEBUG] Checking MediaPipe: 'mediapipe_inference_ms' in stats = {'mediapipe_inference_ms' in stats}")
         if 'mediapipe_inference_ms' in stats:
             print(f"\n🧠 MediaPipe Inference (Pose Detection):")
             print(f"   Mean: {stats['mediapipe_inference_ms']['mean']:.2f} ms")
             print(f"   P50/P95: {stats['mediapipe_inference_ms']['p50']:.2f} / {stats['mediapipe_inference_ms']['p95']:.2f} ms")
+        else:
+            print(f"[DEBUG] MediaPipe stats NOT found, but data exists!")
             
         if 'classifier_inference_ms' in stats:
             print(f"\n🌲 Random Forest Classifier:")

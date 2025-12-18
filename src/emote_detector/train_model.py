@@ -160,10 +160,10 @@ class PoseModelTrainer:
         start_time = datetime.now()
         
         self.model = RandomForestClassifier(
-            n_estimators=n_estimators,
-            max_depth=max_depth,
+            n_estimators=10,  # Ultra-light for RPi inference
+            max_depth=4,      # Reduced for faster inference
             random_state=42,
-            n_jobs=-1
+            n_jobs=1  # Use single core for better inference performance on RPi
         )
         
         self.model.fit(self.X_train, self.y_train)
