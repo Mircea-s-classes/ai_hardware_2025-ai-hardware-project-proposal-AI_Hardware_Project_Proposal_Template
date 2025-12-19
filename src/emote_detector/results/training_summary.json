@@ -1,0 +1,50 @@
+{
+  "n_estimators": 100,
+  "max_depth": 10,
+  "training_time": 0.061359,
+  "n_features": 18,
+  "train_accuracy": 1.0,
+  "test_accuracy": 0.975,
+  "cv_mean": 0.9775,
+  "cv_std": 0.03905124837953326,
+  "per_class_accuracy": {
+    "Laughing": 100.0,
+    "Yawning": 100.0,
+    "Crying": 90.0,
+    "Taunting": 100.0
+  },
+  "top_features": [
+    [
+      "Right Hand Height",
+      0.12153802167857294
+    ],
+    [
+      "Left Hand Offset",
+      0.11493715390543208
+    ],
+    [
+      "Left Hand Height",
+      0.10829952756195832
+    ],
+    [
+      "Left Arm Ext",
+      0.09836538975646081
+    ],
+    [
+      "Left Arm Angle",
+      0.08199370411734769
+    ]
+  ],
+  "model_size_kb": 215.09375,
+  "total_samples": 400,
+  "training_samples": 320,
+  "test_samples": 80,
+  "num_classes": 4,
+  "pose_labels": {
+    "0": "Laughing",
+    "1": "Yawning",
+    "2": "Crying",
+    "3": "Taunting"
+  },
+  "timestamp": "2025-12-17T18:58:03.018352"
+}

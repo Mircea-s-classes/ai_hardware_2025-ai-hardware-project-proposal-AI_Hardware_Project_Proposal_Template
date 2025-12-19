@@ -1,0 +1,12 @@
+{
+  "timestamp": "20251202_184757",
+  "num_samples": 400,
+  "pose_labels": {
+    "0": "Laughing",
+    "1": "Yawning",
+    "2": "Crying",
+    "3": "Taunting"
+  },
+  "samples_per_pose": 100,
+  "collection_date": "2025-12-02T18:47:57.863149"
+}
